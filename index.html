@@ -1,0 +1,3219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Análisis Operativo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0f1419;
+            color: #e5e7eb;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 250px;
+            background: #1a1f2e;
+            border-right: 1px solid #2d3748;
+            padding: 0;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #3b82f6;
+        }
+
+        .logo i {
+            font-size: 1.375rem;
+        }
+
+        .nav-menu {
+            padding: 0.875rem 0;
+        }
+
+        .nav-item {
+            margin: 0.25rem 0.875rem;
+            padding: 0.625rem 0.875rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            color: #9ca3af;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .nav-item:hover {
+            background: #2d3748;
+            color: #e5e7eb;
+        }
+
+        .nav-item.active {
+            background: #1e40af;
+            color: white;
+        }
+
+        .nav-item i {
+            width: 1.125rem;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            background: #0f1419;
+        }
+
+        .header {
+            background: #1a1f2e;
+            border-bottom: 1px solid #2d3748;
+            padding: 0.875rem 1.75rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: #f9fafb;
+        }
+
+        .breadcrumb {
+            font-size: 0.8125rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        .breadcrumb span {
+            color: #3b82f6;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 1.25rem;
+            max-width: none;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: #1a1f2e;
+            border: 1px solid #2d3748;
+            border-radius: 0.625rem;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid #2d3748;
+            padding-bottom: 0.875rem;
+        }
+
+        .card-title {
+            font-size: 1.0625rem;
+            font-weight: 600;
+            color: #f9fafb;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title i {
+            color: #3b82f6;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 0.4375rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4375rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #374151;
+            color: #e5e7eb;
+            border: 1px solid #4b5563;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-success {
+            background: #059669;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* File Upload */
+        .file-upload-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .file-upload-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8125rem;
+            color: #e5e7eb;
+        }
+
+        .file-status {
+            font-size: 0.6875rem;
+            color: #9ca3af;
+        }
+
+        .file-status.success {
+            color: #10b981;
+        }
+
+        /* Dataset Tabs */
+        .dataset-tabs {
+            display: flex;
+            background: #111827;
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+            gap: 0.25rem;
+        }
+
+        .dataset-tab {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .dataset-tab:hover {
+            background: #374151;
+            color: #e5e7eb;
+        }
+
+        .dataset-tab.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .dataset-tab.has-results {
+            border: 2px solid #10b981;
+        }
+
+        .dataset-tab .tab-text {
+            display: block;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #4b5563;
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text {
+            font-size: 0.875rem;
+            color: #e5e7eb;
+            margin-bottom: 0.25rem;
+        }
+
+        .upload-subtext {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 0.875rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #e5e7eb;
+            margin-bottom: 0.4375rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.625rem;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.4375rem;
+            color: #e5e7eb;
+            font-size: 0.8125rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Operatives */
+        .controls-bar {
+            display: flex;
+            gap: 0.875rem;
+            align-items: center;
+            margin-bottom: 1.125rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 275px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.625rem 0.875rem 0.625rem 2.25rem;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.4375rem;
+            color: #e5e7eb;
+            font-size: 0.8125rem;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.625rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+        }
+
+        .operatives-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 0.875rem;
+        }
+
+        .operative-card {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.625rem;
+            padding: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .operative-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        .operative-card.selected {
+            border-color: #059669;
+            background: rgba(5, 150, 105, 0.1);
+        }
+
+        .operative-header {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            margin-bottom: 0.625rem;
+        }
+
+        .operative-checkbox {
+            width: 1.125rem;
+            height: 1.125rem;
+            accent-color: #3b82f6;
+        }
+
+        .operative-name {
+            font-weight: 600;
+            color: #f9fafb;
+            font-size: 0.875rem;
+        }
+
+        .operative-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4375rem;
+            font-size: 0.6875rem;
+            color: #9ca3af;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .detail-value {
+            color: #e5e7eb;
+            font-weight: 500;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            border-radius: 0.625rem;
+            padding: 1rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card.danger { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
+        .stat-card.warning { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); }
+        .stat-card.success { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+        .stat-card.info { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-title {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            font-size: 1.25rem;
+            opacity: 0.8;
+        }
+
+        .stat-number {
+            font-size: 2.125rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        /* Filters */
+        .filters-section {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.625rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .filters-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #f9fafb;
+        }
+
+        .filters-row {
+            display: grid;
+            grid-template-columns: auto auto 1fr auto;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: #e5e7eb;
+            white-space: nowrap;
+            font-size: 0.75rem;
+        }
+
+        .filter-select {
+            padding: 0.375rem;
+            background: #0f1419;
+            border: 1px solid #374151;
+            border-radius: 0.3125rem;
+            color: #e5e7eb;
+            font-size: 0.75rem;
+            min-width: 125px;
+        }
+
+        /* Multi-select filters */
+        .multi-select-container {
+            position: relative;
+            display: inline-block;
+            min-width: 160px;
+        }
+
+        .multi-select-trigger {
+            padding: 0.375rem 0.75rem;
+            background: #0f1419;
+            border: 1px solid #374151;
+            border-radius: 0.3125rem;
+            color: #e5e7eb;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            min-height: 32px;
+        }
+
+        .multi-select-trigger:hover {
+            border-color: #4b5563;
+        }
+
+        .multi-select-trigger.active {
+            border-color: #3b82f6;
+        }
+
+        .multi-select-arrow {
+            transition: transform 0.2s ease;
+            color: #9ca3af;
+        }
+
+        .multi-select-trigger.active .multi-select-arrow {
+            transform: rotate(180deg);
+        }
+
+        .multi-select-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 2px;
+        }
+
+        .multi-select-dropdown.show {
+            display: block;
+        }
+
+        .multi-select-option {
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: #e5e7eb;
+            border-bottom: 1px solid #374151;
+        }
+
+        .multi-select-option:last-child {
+            border-bottom: none;
+        }
+
+        .multi-select-option:hover {
+            background: #374151;
+        }
+
+        .multi-select-option input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: #3b82f6;
+        }
+
+        .multi-select-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .multi-select-count {
+            background: #3b82f6;
+            color: white;
+            font-size: 0.625rem;
+            font-weight: 600;
+            padding: 0.125rem 0.375rem;
+            border-radius: 9999px;
+            margin-left: 0.25rem;
+        }
+
+        .percentage-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #374151;
+        }
+
+        .percentage-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .percentage-filter label {
+            font-size: 0.6875rem;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 0.375rem;
+            align-items: center;
+        }
+
+        .comparison-select {
+            flex: 0 0 50px;
+            padding: 0.375rem;
+            background: #0f1419;
+            border: 1px solid #374151;
+            border-radius: 0.3125rem;
+            color: #e5e7eb;
+            font-size: 0.6875rem;
+        }
+
+        .filter-input {
+            flex: 1;
+            padding: 0.375rem;
+            background: #0f1419;
+            border: 1px solid #374151;
+            border-radius: 0.3125rem;
+            color: #e5e7eb;
+            font-size: 0.6875rem;
+        }
+
+        .threshold-section {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #374151;
+        }
+
+        .threshold-filter {
+            max-width: 275px;
+        }
+
+        .filter-info {
+            margin-top: 0.375rem;
+            font-size: 0.6875rem;
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        /* Table */
+        .results-container {
+            background: #1a1f2e;
+            border: 1px solid #2d3748;
+            border-radius: 0.625rem;
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: #111827;
+            padding: 0.75rem 1.125rem;
+            border-bottom: 1px solid #2d3748;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f9fafb;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #111827;
+            color: #f9fafb;
+            padding: 0.625rem 0.4375rem;
+            font-weight: 600;
+            text-align: left;
+            font-size: 0.75rem;
+            border-bottom: 1px solid #2d3748;
+        }
+
+        td {
+            padding: 0.5rem 0.4375rem;
+            border-bottom: 1px solid #2d3748;
+            font-size: 0.75rem;
+        }
+
+        tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Progress bars */
+        .progress-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 0.4375rem;
+            background: #374151;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.6875rem;
+            font-weight: 500;
+            min-width: 2.75rem;
+            text-align: right;
+        }
+
+        /* Percentage badges */
+        .percentage-badge {
+            padding: 0.3125rem 0.625rem;
+            border-radius: 0.3125rem;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-align: center;
+            color: white;
+            min-width: 3rem;
+            display: inline-block;
+        }
+
+        .percentage-excellent {
+            background: #059669;
+        }
+
+        .percentage-very-good {
+            background: #10b981;
+        }
+
+        .percentage-good {
+            background: #84cc16;
+        }
+
+        .percentage-fair {
+            background: #f59e0b;
+        }
+
+        .percentage-poor {
+            background: #ef4444;
+        }
+
+        .percentage-very-poor {
+            background: #dc2626;
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.6875rem;
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .status-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-info {
+            background: rgba(6, 182, 212, 0.2);
+            color: #67e8f9;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        /* Summary table */
+        .summary-table-container {
+            background: #1a1f2e;
+            border: 1px solid #2d3748;
+            border-radius: 0.625rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .summary-table th {
+            padding: 0.875rem;
+            text-align: center;
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.8125rem;
+        }
+
+        .summary-table td {
+            padding: 0.875rem;
+            text-align: center;
+            border-bottom: 1px solid #2d3748;
+            font-size: 0.8125rem;
+        }
+
+        /* Tooltip para operativas */
+        .tooltip-cell {
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .tooltip-cell:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .tooltip {
+            position: fixed;
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 1001;
+            min-width: 200px;
+            max-width: 300px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            font-size: 0.75rem;
+            line-height: 1.4;
+            pointer-events: none;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            color: #e5e7eb;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 0.25rem;
+        }
+
+        .tooltip-content {
+            color: #d1d5db;
+        }
+
+        .tooltip-operativa {
+            padding: 0.125rem 0;
+            font-size: 0.6875rem;
+        }
+
+        /* Settings */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .setting-card {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.625rem;
+            padding: 1.25rem;
+        }
+
+        .setting-label {
+            display: block;
+            font-weight: 600;
+            color: #f9fafb;
+            margin-bottom: 0.625rem;
+            font-size: 0.8125rem;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 0.625rem;
+            background: #0f1419;
+            border: 1px solid #374151;
+            border-radius: 0.4375rem;
+            color: #e5e7eb;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .setting-description {
+            font-size: 0.6875rem;
+            color: #9ca3af;
+            margin-top: 0.4375rem;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .content-area {
+                padding: 0.875rem;
+            }
+
+            .filters-row {
+                grid-template-columns: 1fr;
+                gap: 0.625rem;
+            }
+
+            .percentage-filters {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Análisis Operativo</span>
+                </div>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-tab="analysis">
+                    <i class="fas fa-analytics"></i>
+                    <span>Análisis</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="summary">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Resumen</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="settings">
+                    <i class="fas fa-cogs"></i>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-content">
+                    <div>
+                        <h1 class="page-title" id="pageTitle">Dashboard de Análisis</h1>
+                        <div class="breadcrumb">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Analysis Tab -->
+                <div id="analysisTab" class="tab-content active">
+                    <!-- File Upload Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-upload"></i>
+                                Cargar Datos (hasta 4 archivos)
+                            </h2>
+                        </div>
+                        
+                        <!-- File Upload Grid -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                            <!-- Archivo 1 -->
+                            <div class="file-upload-container">
+                                <div class="file-upload-header">
+                                    <strong>Archivo 1</strong>
+                                    <span id="fileName1" class="file-status"></span>
+                                </div>
+                                <div class="file-upload-area" onclick="document.getElementById('csvFile1').click()">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <div class="upload-text" style="font-size: 0.875rem;">Semana 1</div>
+                                    <div class="upload-subtext">CSV archivo</div>
+                                    <input type="file" id="csvFile1" class="file-input" accept=".csv" />
+                                </div>
+                            </div>
+
+                            <!-- Archivo 2 -->
+                            <div class="file-upload-container">
+                                <div class="file-upload-header">
+                                    <strong>Archivo 2</strong>
+                                    <span id="fileName2" class="file-status"></span>
+                                </div>
+                                <div class="file-upload-area" onclick="document.getElementById('csvFile2').click()">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <div class="upload-text" style="font-size: 0.875rem;">Semana 2</div>
+                                    <div class="upload-subtext">CSV archivo (opcional)</div>
+                                    <input type="file" id="csvFile2" class="file-input" accept=".csv" />
+                                </div>
+                            </div>
+
+                            <!-- Archivo 3 -->
+                            <div class="file-upload-container">
+                                <div class="file-upload-header">
+                                    <strong>Archivo 3</strong>
+                                    <span id="fileName3" class="file-status"></span>
+                                </div>
+                                <div class="file-upload-area" onclick="document.getElementById('csvFile3').click()">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <div class="upload-text" style="font-size: 0.875rem;">Semana 3</div>
+                                    <div class="upload-subtext">CSV archivo (opcional)</div>
+                                    <input type="file" id="csvFile3" class="file-input" accept=".csv" />
+                                </div>
+                            </div>
+
+                            <!-- Archivo 4 -->
+                            <div class="file-upload-container">
+                                <div class="file-upload-header">
+                                    <strong>Archivo 4</strong>
+                                    <span id="fileName4" class="file-status"></span>
+                                </div>
+                                <div class="file-upload-area" onclick="document.getElementById('csvFile4').click()">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <div class="upload-text" style="font-size: 0.875rem;">Semana 4</div>
+                                    <div class="upload-subtext">CSV archivo (opcional)</div>
+                                    <input type="file" id="csvFile4" class="file-input" accept=".csv" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dataset Selection Tabs -->
+                        <div id="datasetTabs" class="hidden" style="margin-top: 1.5rem;">
+                            <div class="dataset-tabs">
+                                <button id="datasetTab0" class="dataset-tab active" onclick="switchDataset(0)">
+                                    <span class="tab-text">Archivo 1</span>
+                                </button>
+                                <button id="datasetTab1" class="dataset-tab hidden" onclick="switchDataset(1)">
+                                    <span class="tab-text">Archivo 2</span>
+                                </button>
+                                <button id="datasetTab2" class="dataset-tab hidden" onclick="switchDataset(2)">
+                                    <span class="tab-text">Archivo 3</span>
+                                </button>
+                                <button id="datasetTab3" class="dataset-tab hidden" onclick="switchDataset(3)">
+                                    <span class="tab-text">Archivo 4</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Operatives Selection -->
+                    <div id="operativesCard" class="card hidden">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-tasks"></i>
+                                Seleccionar Operativas
+                            </h2>
+                        </div>
+
+                        <div class="controls-bar">
+                            <div class="search-box">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" id="searchInput" class="search-input" placeholder="Buscar operativas...">
+                            </div>
+                            <select id="colmenaFilter" class="form-control" style="max-width: 170px;">
+                                <option value="">Todas las Colmenas</option>
+                            </select>
+                            <button id="selectAllBtn" class="btn btn-secondary">
+                                <i class="fas fa-check-square"></i>
+                                Seleccionar Todas
+                            </button>
+                            <button id="analyzeBtn" class="btn btn-primary" disabled>
+                                <i class="fas fa-play"></i>
+                                Analizar
+                            </button>
+                            <button id="toggleSelectionBtn" class="btn btn-secondary">
+                                <i class="fas fa-chevron-up"></i>
+                                Ocultar
+                            </button>
+                        </div>
+
+                        <div class="operatives-container">
+                            <div id="selectionInfo" style="margin-bottom: 0.875rem; color: #9ca3af; font-size: 0.8125rem;">0 operativas seleccionadas</div>
+                            <div id="operativesGrid" class="operatives-grid"></div>
+                        </div>
+                    </div>
+
+                    <!-- Results -->
+                    <div id="resultsSection" class="hidden">
+                        <!-- Stats Grid -->
+                        <div id="statsGrid" class="stats-grid"></div>
+
+                        <!-- Filters Section -->
+                        <div class="filters-section">
+                            <div class="filters-header">
+                                <h3 class="filters-title">
+                                    <i class="fas fa-filter"></i>
+                                    Filtros Avanzados
+                                </h3>
+                                <button id="clearFiltersBtn" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i>
+                                    Limpiar Filtros
+                                </button>
+                            </div>
+                            
+                            <div class="filters-row">
+                                <div class="filter-group">
+                                    <label class="filter-label">🏢 Colmena:</label>
+                                    <div class="multi-select-container" id="colmenaMultiSelect">
+                                        <div class="multi-select-trigger" onclick="toggleMultiSelect('colmena')">
+                                            <span class="multi-select-text" id="colmenaSelectedText">Todas</span>
+                                            <span class="multi-select-arrow"><i class="fas fa-chevron-down"></i></span>
+                                        </div>
+                                        <div class="multi-select-dropdown" id="colmenaDropdown">
+                                            <!-- Options will be populated dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="filter-group">
+                                    <label class="filter-label">🎯 Clasificación:</label>
+                                    <div class="multi-select-container" id="clasificacionMultiSelect">
+                                        <div class="multi-select-trigger" onclick="toggleMultiSelect('clasificacion')">
+                                            <span class="multi-select-text" id="clasificacionSelectedText">Todas</span>
+                                            <span class="multi-select-arrow"><i class="fas fa-chevron-down"></i></span>
+                                        </div>
+                                        <div class="multi-select-dropdown" id="clasificacionDropdown">
+                                            <!-- Options will be populated dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="filter-group">
+                                    <span id="resultsFilterInfo" style="color: #9ca3af; font-style: italic; font-size: 0.6875rem;"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="percentage-filters">
+                                <div class="percentage-filter">
+                                    <label>📊 % Salida en Hora</label>
+                                    <div class="filter-row">
+                                        <select id="salidaComparison" class="comparison-select">
+                                            <option value="">-</option>
+                                            <option value="gte">≥</option>
+                                            <option value="lt"><</option>
+                                        </select>
+                                        <input type="number" id="salidaValue" class="filter-input" placeholder="%" min="0" max="100" step="0.1">
+                                    </div>
+                                </div>
+                                
+                                <div class="percentage-filter">
+                                    <label>📊 % Llegada Área</label>
+                                    <div class="filter-row">
+                                        <select id="llegadaAreaComparison" class="comparison-select">
+                                            <option value="">-</option>
+                                            <option value="gte">≥</option>
+                                            <option value="lt"><</option>
+                                        </select>
+                                        <input type="number" id="llegadaAreaValue" class="filter-input" placeholder="%" min="0" max="100" step="0.1">
+                                    </div>
+                                </div>
+                                
+                                <div class="percentage-filter">
+                                    <label>📊 % Retraso en Área</label>
+                                    <div class="filter-row">
+                                        <select id="retrasoAreaComparison" class="comparison-select">
+                                            <option value="">-</option>
+                                            <option value="gte">≥</option>
+                                            <option value="lt"><</option>
+                                        </select>
+                                        <input type="number" id="retrasoAreaValue" class="filter-input" placeholder="%" min="0" max="100" step="0.1">
+                                    </div>
+                                </div>
+                                
+                                <div class="percentage-filter">
+                                    <label>📊 % Llegada en Hora</label>
+                                    <div class="filter-row">
+                                        <select id="llegadaHoraComparison" class="comparison-select">
+                                            <option value="">-</option>
+                                            <option value="gte">≥</option>
+                                            <option value="lt"><</option>
+                                        </select>
+                                        <input type="number" id="llegadaHoraValue" class="filter-input" placeholder="%" min="0" max="100" step="0.1">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="threshold-section">
+                                <div class="percentage-filter threshold-filter">
+                                    <label>🔢 Mostrar operativas con % retrasos ≥</label>
+                                    <input type="number" id="retrasosThresholdFilter" class="filter-input" 
+                                           placeholder="Ej: 15" min="0" max="100" step="0.1">
+                                </div>
+                                <div class="filter-info">
+                                    <span id="retrasosFilterInfo"></span>
+                                    <span id="accionFilterInfo" style="margin-left: 1rem;"></span>
+                                    <span id="currentThresholdInfo" style="margin-left: 1rem;">TR≤60%, TL≤60%, H≥90%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Results Table -->
+                        <div class="results-container">
+                            <div class="table-header">
+                                <h3 class="table-title">
+                                    <i class="fas fa-table"></i>
+                                    <span id="currentResultsTitle">Resultados del Análisis</span>
+                                </h3>
+                                <button id="downloadBtn" class="btn btn-success">
+                                    <i class="fas fa-download"></i>
+                                    Descargar CSV
+                                </button>
+                            </div>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Operativa</th>
+                                            <th>Rutas/Día</th>
+                                            <th>Días</th>
+                                            <th>Col/Ruta</th>
+                                            <th>% Retrasos</th>
+                                            <th>% Sin Retraso</th>
+                                            <th>% Salida en Hora</th>
+                                            <th>% Llegada Área</th>
+                                            <th>% Retraso en Área</th>
+                                            <th>% Llegada en Hora</th>
+                                            <th>Clasificación</th>
+                                            <th>Problemas Volumen</th>
+                                            <th>Posibles Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="resultsTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Tab -->
+                <div id="summaryTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-chart-pie"></i>
+                                Resumen por Colmena
+                            </h2>
+                            <!-- NUEVO: Selector de semanas -->
+                            <select id="summaryWeekSelector" class="form-control" style="max-width: 200px;" onchange="updateSummaryView()">
+                                <option value="all">Todas las semanas</option>
+                            </select>
+                        </div>
+                        <div id="summaryContent" class="hidden">
+                            <div id="summaryTable"></div>
+                        </div>
+                        <div id="noSummaryData" style="text-align: center; padding: 2.5rem; color: #6b7280;">
+                            <i class="fas fa-chart-bar" style="font-size: 2.75rem; margin-bottom: 0.875rem; color: #374151;"></i>
+                            <h4 style="margin-bottom: 0.625rem; color: #9ca3af;">No hay datos disponibles</h4>
+                            <p style="margin-bottom: 1.25rem;">Ejecuta un análisis para ver el resumen por colmena</p>
+                            <button onclick="switchTab('analysis')" class="btn btn-primary">
+                                <i class="fas fa-play"></i>
+                                Ir a Análisis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settingsTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-sliders-h"></i>
+                                Configuración de Umbrales
+                            </h2>
+                        </div>
+
+                        <div class="settings-grid">
+                            <div class="setting-card">
+                                <label class="setting-label">
+                                    <i class="fas fa-exclamation-triangle" style="color: #ef4444; margin-right: 0.5rem;"></i>
+                                    Umbral Tensionada Retrasos (%)
+                                </label>
+                                <input type="number" id="tensionadaRetrasosInput" class="setting-input" value="60" min="0" max="100" step="1">
+                                <div class="setting-description">Máximo % Retraso en Área para clasificación crítica</div>
+                            </div>
+
+                            <div class="setting-card">
+                                <label class="setting-label">
+                                    <i class="fas fa-clock" style="color: #f59e0b; margin-right: 0.5rem;"></i>
+                                    Umbral Tensionada Llegada (%)
+                                </label>
+                                <input type="number" id="tensionadaLlegadaInput" class="setting-input" value="60" min="0" max="100" step="1">
+                                <div class="setting-description">Máximo % Llegada en Hora para clasificación de atención</div>
+                            </div>
+
+                            <div class="setting-card">
+                                <label class="setting-label">
+                                    <i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.5rem;"></i>
+                                    Umbral Holguras (%)
+                                </label>
+                                <input type="number" id="holguraInput" class="setting-input" value="90" min="0" max="100" step="1">
+                                <div class="setting-description">Mínimo % para ambas métricas de rendimiento óptimo</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: center;">
+                            <button id="applyThreshold" class="btn btn-primary" disabled>
+                                <i class="fas fa-save"></i>
+                                Aplicar Configuración
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        // Variables globales
+        let tensionadaRetrasosThreshold = 60;
+        let tensionadaLlegadaThreshold = 60;
+        let holguraThreshold = 90;
+        
+        // Arrays para manejar múltiples datasets
+        let datasets = [null, null, null, null];
+        let datasetNames = ['', '', '', ''];
+        let selectedOperativesByDataset = [new Set(), new Set(), new Set(), new Set()];
+        let filteredOperativesByDataset = [[], [], [], []];
+        let analysisResultsByDataset = [[], [], [], []];
+        let availableColmenasByDataset = [new Set(), new Set(), new Set(), new Set()];
+        
+        let currentActiveDataset = 0;
+        let isSelectionCollapsed = false;
+        let filteredResults = [];
+        let activeFilters = {
+            colmena: [], // Cambiado a array para selección múltiple
+            salidaComparison: '',
+            salidaValue: '',
+            llegadaAreaComparison: '',
+            llegadaAreaValue: '',
+            retrasoAreaComparison: '',
+            retrasoAreaValue: '',
+            llegadaHoraComparison: '',
+            llegadaHoraValue: '',
+            retrasosThreshold: '',
+            accionRecomendada: [] // Cambiado a array para selección múltiple
+        };
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            const titles = {
+                'analysis': 'Dashboard de Análisis',
+                'summary': 'Resumen por Colmena',
+                'settings': 'Configuración de Umbrales'
+            };
+            document.getElementById('pageTitle').textContent = titles[tabName];
+            
+            if (tabName === 'summary') {
+                showSummaryTab();
+            }
+        }
+
+        // Analysis functions
+        function analyzeDelay(data) {
+            const parseValue = (value) => {
+                if (value === '' || value === undefined || value === null) return 0;
+                return parseFloat(value.toString().replace(',', '.')) || 0;
+            };
+
+            const porcRetrasoEnArea = parseValue(data.porc_retraso_en_area);
+            const porcLlegadaEnHora = parseValue(data.porc_llegada_en_hora);
+            const colVolumen = parseValue(data.col_volumen);
+            const colTempus = parseValue(data.col_tempus);
+
+            let accionRecomendada = '';
+
+            if (porcRetrasoEnArea <= tensionadaRetrasosThreshold) {
+                accionRecomendada = 'Tensionada Retrasos';
+            } else if (porcLlegadaEnHora <= tensionadaLlegadaThreshold) {
+                accionRecomendada = 'Tensionada Llegada';
+            } else if (porcRetrasoEnArea >= holguraThreshold && porcLlegadaEnHora >= holguraThreshold) {
+                if (colVolumen > colTempus) {
+                    accionRecomendada = 'Holgura Tiempo-Volumen';
+                } else {
+                    accionRecomendada = 'Holgura Tiempo';
+                }
+            } else {
+                accionRecomendada = 'Sin Clasificar';
+            }
+
+            const volumeAnalysis = analyzeVolumeProblems(data.col_tempus, data.col_volumen);
+
+            return {
+                operativa: data.operativa || '',
+                rutasDia: data.rutas_dia !== undefined ? data.rutas_dia : '',
+                dias: data.dias !== undefined ? data.dias : '',
+                colPorRuta: data.col_por_ruta !== undefined ? data.col_por_ruta : '',
+                porcRetrasos: data.porc_retrasos !== undefined ? data.porc_retrasos : '',
+                porcSinRetraso: data.porc_sin_retraso !== undefined ? data.porc_sin_retraso : '',
+                porcSalidaEnHora: data.porc_salida_en_hora !== undefined ? data.porc_salida_en_hora : '',
+                porcLlegadaArea: data.porc_llegada_area !== undefined ? data.porc_llegada_area : '',
+                porcRetrasoEnArea: data.porc_retraso_en_area !== undefined ? data.porc_retraso_en_area : '',
+                porcLlegadaEnHora: data.porc_llegada_en_hora !== undefined ? data.porc_llegada_en_hora : '',
+                colTeorica: data.col_teoricas !== undefined ? data.col_teoricas : '',
+                pdTeorico: data.pd_teorico !== undefined ? data.pd_teorico : '',
+                udTeorico: data.ud_teorico !== undefined ? data.ud_teorico : '',
+                colTempus: data.col_tempus !== undefined ? data.col_tempus : '',
+                pdTempus: data.pd_tempus !== undefined ? data.pd_tempus : '',
+                udTempus: data.ud_tempus !== undefined ? data.ud_tempus : '',
+                colVolumen: data.col_volumen !== undefined ? data.col_volumen : '',
+                accion: accionRecomendada,
+                volumeProblems: volumeAnalysis
+            };
+        }
+
+        function analyzeVolumeProblems(colTempus, colVolumen) {
+            const parseValue = (value) => {
+                if (value === '' || value === undefined || value === null) return 0;
+                return parseFloat(value.toString().replace(',', '.')) || 0;
+            };
+            
+            const tempusValue = parseValue(colTempus);
+            const volumenValue = parseValue(colVolumen);
+            
+            if (tempusValue > volumenValue) {
+                const diferencia = tempusValue - volumenValue;
+                return {
+                    hasProblems: true,
+                    status: 'Exceso',
+                    difference: diferencia.toFixed(2),
+                    message: `Exceso: ${diferencia.toFixed(2)}`
+                };
+            } else if (volumenValue > tempusValue) {
+                const holgura = volumenValue - tempusValue;
+                return {
+                    hasProblems: false,
+                    status: 'Holgura',
+                    difference: holgura.toFixed(2),
+                    message: `Holgura: ${holgura.toFixed(2)}`
+                };
+            } else {
+                return {
+                    hasProblems: false,
+                    status: 'Equilibrio',
+                    difference: '0',
+                    message: 'Equilibrio'
+                };
+            }
+        }
+
+        function formatValue(value) {
+            if (value !== undefined && value !== null && value !== '') {
+                const valueStr = value.toString();
+                if (valueStr.includes(',')) {
+                    const parts = valueStr.split(',');
+                    if (parts[1] && parts[1].length > 2) {
+                        return parts[0] + ',' + parts[1].substring(0, 2);
+                    }
+                }
+                else if (valueStr.includes('.')) {
+                    const parts = valueStr.split('.');
+                    if (parts[1] && parts[1].length > 2) {
+                        return parts[0] + '.' + parts[1].substring(0, 2);
+                    }
+                }
+                return valueStr;
+            }
+            return '';
+        }
+
+        function createRecommendations(result) {
+            let recommendations = [];
+            
+            const parseValue = (value) => {
+                if (value === '' || value === undefined || value === null) return 0;
+                return parseFloat(value.toString().replace(',', '.')) || 0;
+            };
+            
+            const colTeorica = parseValue(result.colTeorica);
+            const colTempus = parseValue(result.colTempus);
+            const diferenciaCol = colTeorica - colTempus;
+            
+            // NUEVO FORMATO: **Título**: Histórico: X, Tempus: Y (Recomendación)
+            if (diferenciaCol !== 0) {
+                const accionProductividad = diferenciaCol < 0 ? "Reducir productividad" : "Aumentar productividad";
+                recommendations.push(`<strong>Productividad</strong>: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (${accionProductividad}: ${Math.abs(diferenciaCol).toFixed(2)})`);
+            } else {
+                recommendations.push(`<strong>Productividad</strong>: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (Equilibrada)`);
+            }
+            
+            const pdTeorico = parseValue(result.pdTeorico);
+            const pdTempus = parseValue(result.pdTempus);
+            const ajusteTiemposIda = pdTeorico - pdTempus;
+            
+            if (ajusteTiemposIda !== 0) {
+                const accionTiempoIda = ajusteTiemposIda < 0 ? "Reducir tiempo ida" : "Aumentar tiempo ida";
+                recommendations.push(`<strong>Tiempo de ida</strong>: Histórico: ${pdTeorico.toFixed(2)}, Tempus: ${pdTempus.toFixed(2)} (${accionTiempoIda}: ${Math.abs(ajusteTiemposIda).toFixed(2)})`);
+            } else {
+                recommendations.push(`<strong>Tiempo de ida</strong>: Histórico: ${pdTeorico.toFixed(2)}, Tempus: ${pdTempus.toFixed(2)} (Equilibrado)`);
+            }
+            
+            const udTeorico = parseValue(result.udTeorico);
+            const udTempus = parseValue(result.udTempus);
+            const ajusteTiemposVuelta = udTeorico - udTempus;
+            
+            if (ajusteTiemposVuelta !== 0) {
+                const accionTiempoVuelta = ajusteTiemposVuelta < 0 ? "Reducir tiempo vuelta" : "Aumentar tiempo vuelta";
+                recommendations.push(`<strong>Tiempo de vuelta</strong>: Histórico: ${udTeorico.toFixed(2)}, Tempus: ${udTempus.toFixed(2)} (${accionTiempoVuelta}: ${Math.abs(ajusteTiemposVuelta).toFixed(2)})`);
+            } else {
+                recommendations.push(`<strong>Tiempo de vuelta</strong>: Histórico: ${udTeorico.toFixed(2)}, Tempus: ${udTempus.toFixed(2)} (Equilibrado)`);
+            }
+            
+            return recommendations.join('<br>');
+        }
+
+        // Función para crear recomendaciones sin HTML (para CSV)
+        function createPlainTextRecommendations(result) {
+            let recommendations = [];
+            
+            const parseValue = (value) => {
+                if (value === '' || value === undefined || value === null) return 0;
+                return parseFloat(value.toString().replace(',', '.')) || 0;
+            };
+            
+            const colTeorica = parseValue(result.colTeorica);
+            const colTempus = parseValue(result.colTempus);
+            const diferenciaCol = colTeorica - colTempus;
+            
+            // Productividad
+            if (diferenciaCol !== 0) {
+                const accionProductividad = diferenciaCol < 0 ? "Reducir productividad" : "Aumentar productividad";
+                recommendations.push(`Productividad: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (${accionProductividad}: ${Math.abs(diferenciaCol).toFixed(2)})`);
+            } else {
+                recommendations.push(`Productividad: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (Equilibrada)`);
+            }
+            
+            const pdTeorico = parseValue(result.pdTeorico);
+            const pdTempus = parseValue(result.pdTempus);
+            const ajusteTiemposIda = pdTeorico - pdTempus;
+            
+            // Tiempo de ida
+            if (ajusteTiemposIda !== 0) {
+                const accionTiempoIda = ajusteTiemposIda < 0 ? "Reducir tiempo ida" : "Aumentar tiempo ida";
+                recommendations.push(`Tiempo de ida: Histórico: ${pdTeorico.toFixed(2)}, Tempus: ${pdTempus.toFixed(2)} (${accionTiempoIda}: ${Math.abs(ajusteTiemposIda).toFixed(2)})`);
+            } else {
+                recommendations.push(`Tiempo de ida: Histórico: ${pdTeorico.toFixed(2)}, Tempus: ${pdTempus.toFixed(2)} (Equilibrado)`);
+            }
+            
+            const udTeorico = parseValue(result.udTeorico);
+            const udTempus = parseValue(result.udTempus);
+            const ajusteTiemposVuelta = udTeorico - udTempus;
+            
+            // Tiempo de vuelta
+            if (ajusteTiemposVuelta !== 0) {
+                const accionTiempoVuelta = ajusteTiemposVuelta < 0 ? "Reducir tiempo vuelta" : "Aumentar tiempo vuelta";
+                recommendations.push(`Tiempo de vuelta: Histórico: ${udTeorico.toFixed(2)}, Tempus: ${udTempus.toFixed(2)} (${accionTiempoVuelta}: ${Math.abs(ajusteTiemposVuelta).toFixed(2)})`);
+            } else {
+                recommendations.push(`Tiempo de vuelta: Histórico: ${udTeorico.toFixed(2)}, Tempus: ${udTempus.toFixed(2)} (Equilibrado)`);
+            }
+            
+            return recommendations.join(' | ');
+        }
+
+        function getProgressColor(percentage) {
+            const value = parseFloat(percentage) || 0;
+            if (value >= 85) return '#059669';
+            if (value >= 70) return '#10b981';
+            if (value >= 55) return '#84cc16';
+            if (value >= 40) return '#f59e0b';
+            if (value >= 25) return '#ef4444';
+            return '#dc2626';
+        }
+
+        function getPercentageBadgeClass(percentage, isRetrasoEnArea = false) {
+            const value = parseFloat(percentage) || 0;
+            
+            {
+                if (value >= 85) return 'percentage-excellent';
+                if (value >= 70) return 'percentage-very-good';
+                if (value >= 55) return 'percentage-good';
+                if (value >= 40) return 'percentage-fair';
+                if (value >= 25) return 'percentage-poor';
+                return 'percentage-very-poor';
+            }
+        }
+
+        function getStatusClass(action) {
+            if (action.includes('Tensionada Retrasos')) return 'status-danger';
+            if (action.includes('Tensionada Llegada')) return 'status-warning';
+            if (action.includes('Holgura Tiempo')) return 'status-success';
+            return 'status-info';
+        }
+
+        // Funciones para manejar múltiples datasets
+        function switchDataset(index) {
+            console.log(`Cambiando a dataset ${index}`);
+            currentActiveDataset = index;
+            
+            // Actualizar pestañas activas
+            document.querySelectorAll('.dataset-tab').forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Mostrar datos del dataset activo
+            if (datasets[index]) {
+                showOperativeSelection(datasets[index], index);
+                
+                // CORREGIDO: Actualizar estado del botón "Seleccionar Todas"
+                updateSelectAllButton(index);
+                
+                // Si hay análisis para este dataset, mostrar resultados
+                if (analysisResultsByDataset[index] && analysisResultsByDataset[index].length > 0) {
+                    displayResults(analysisResultsByDataset[index], index);
+                } else {
+                    document.getElementById('resultsSection').classList.add('hidden');
+                }
+            } else {
+                document.getElementById('operativesCard').classList.add('hidden');
+                document.getElementById('resultsSection').classList.add('hidden');
+            }
+        }
+        
+        // NUEVA: Función para actualizar el estado del botón "Seleccionar Todas"
+        function updateSelectAllButton(datasetIndex) {
+            const currentData = datasets[datasetIndex];
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            
+            if (!currentData) {
+                selectAllBtn.innerHTML = '<i class="fas fa-check-square"></i> Seleccionar Todas';
+                return;
+            }
+            
+            const currentSelections = selectedOperativesByDataset[datasetIndex];
+            const isAllSelected = currentSelections.size === currentData.length && currentData.length > 0;
+            
+            if (isAllSelected) {
+                selectAllBtn.innerHTML = '<i class="fas fa-square"></i> Deseleccionar Todas';
+            } else {
+                selectAllBtn.innerHTML = '<i class="fas fa-check-square"></i> Seleccionar Todas';
+            }
+        }
+
+        function hasAnyDatasets() {
+            return datasets.some(data => data !== null);
+        }
+
+        function getLoadedDatasetsCount() {
+            return datasets.filter(data => data !== null).length;
+        }
+
+        function hasAnyAnalysisResults() {
+            return analysisResultsByDataset.some(results => results && results.length > 0);
+        }
+
+        // CSV Processing
+        function processCSV(csvData, datasetIndex, fileName) {
+            Papa.parse(csvData, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    if (results.errors.length > 0) {
+                        alert(`Error al procesar ${fileName}: ` + results.errors[0].message);
+                        return;
+                    }
+
+                    datasets[datasetIndex] = results.data;
+                    datasetNames[datasetIndex] = fileName;
+                    // CORREGIDO: Limpiar completamente las selecciones del dataset
+                    selectedOperativesByDataset[datasetIndex] = new Set();
+                    analysisResultsByDataset[datasetIndex] = [];
+                    availableColmenasByDataset[datasetIndex] = new Set();
+                    
+                    // Actualizar interfaz
+                    const statusElement = document.getElementById(`fileName${datasetIndex + 1}`);
+                    statusElement.textContent = `✓ ${fileName}`;
+                    statusElement.className = 'file-status success';
+                    
+                    // Mostrar tabs y actualizar dataset activo si es necesario
+                    showDatasetTabs();
+                    
+                    // CORREGIDO: Siempre cambiar al archivo recién subido
+                    currentActiveDataset = datasetIndex;
+                    switchDataset(datasetIndex);
+                    
+                    console.log(`Archivo ${datasetIndex + 1} procesado: ${results.data.length} filas`);
+                }
+            });
+        }
+
+        function showDatasetTabs() {
+            const tabsContainer = document.getElementById('datasetTabs');
+            const loadedCount = getLoadedDatasetsCount();
+            
+            if (loadedCount > 0) {
+                tabsContainer.classList.remove('hidden');
+                
+                datasets.forEach((data, index) => {
+                    const tab = document.getElementById(`datasetTab${index}`);
+                    const tabText = tab.querySelector('.tab-text');
+                    
+                    if (data) {
+                        tab.classList.remove('hidden');
+                        // Indicar si hay resultados para este dataset
+                        if (analysisResultsByDataset[index] && analysisResultsByDataset[index].length > 0) {
+                            tab.classList.add('has-results');
+                        } else {
+                            tab.classList.remove('has-results');
+                        }
+                        
+                        const shortName = datasetNames[index] ? 
+                            (datasetNames[index].length > 15 ? datasetNames[index].substring(0, 12) + '...' : datasetNames[index]) 
+                            : `Archivo ${index + 1}`;
+                        tabText.textContent = shortName;
+                    } else {
+                        tab.classList.add('hidden');
+                        tab.classList.remove('has-results');
+                    }
+                });
+            } else {
+                tabsContainer.classList.add('hidden');
+            }
+        }
+
+        function extractColmena(operativa) {
+            if (!operativa) return '';
+            const match = operativa.match(/^([a-zA-Z]{3}\d+)/);
+            return match ? match[1] : '';
+        }
+
+        function showOperativeSelection(data, datasetIndex) {
+            const operativesCard = document.getElementById('operativesCard');
+            
+            availableColmenasByDataset[datasetIndex].clear();
+            data.forEach(row => {
+                const colmena = extractColmena(row.operativa);
+                if (colmena) availableColmenasByDataset[datasetIndex].add(colmena);
+            });
+            
+            populateColmenaFilter(datasetIndex);
+            filteredOperativesByDataset[datasetIndex] = data.map((row, index) => ({ ...row, originalIndex: index }));
+            renderOperatives(datasetIndex);
+            
+            operativesCard.classList.remove('hidden');
+            updateSelectionInfo(datasetIndex);
+        }
+
+        function populateColmenaFilter(datasetIndex) {
+            const colmenaFilter = document.getElementById('colmenaFilter');
+            const sortedColmenas = Array.from(availableColmenasByDataset[datasetIndex]).sort();
+            
+            colmenaFilter.innerHTML = '<option value="">Todas las Colmenas</option>';
+            
+            sortedColmenas.forEach(colmena => {
+                const option = document.createElement('option');
+                option.value = colmena;
+                option.textContent = colmena.toUpperCase();
+                colmenaFilter.appendChild(option);
+            });
+        }
+
+        function renderOperatives(datasetIndex) {
+            const operativesGrid = document.getElementById('operativesGrid');
+            
+            operativesGrid.innerHTML = filteredOperativesByDataset[datasetIndex].map((row) => {
+                const colmena = extractColmena(row.operativa);
+                const isSelected = selectedOperativesByDataset[datasetIndex].has(row.originalIndex);
+                // CORREGIDO: Usar IDs únicos por dataset para evitar conflictos
+                const uniqueId = `op_${datasetIndex}_${row.originalIndex}`;
+                
+                return `
+                <div class="operative-card ${isSelected ? 'selected' : ''}" onclick="toggleOperative(${row.originalIndex}, ${datasetIndex})">
+                    <div class="operative-header">
+                        <input type="checkbox" class="operative-checkbox" id="${uniqueId}" 
+                               ${isSelected ? 'checked' : ''} onchange="toggleOperative(${row.originalIndex}, ${datasetIndex})">
+                        <div class="operative-name">${row.operativa || 'Sin nombre'}</div>
+                    </div>
+                    <div class="operative-details">
+                        <div class="detail-item">
+                            <span>Colmena:</span>
+                            <span class="detail-value">${colmena.toUpperCase()}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Rutas/día:</span>
+                            <span class="detail-value">${row.rutas_dia || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Días:</span>
+                            <span class="detail-value">${row.dias || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Col/Ruta:</span>
+                            <span class="detail-value">${row.col_por_ruta || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function toggleOperative(index, datasetIndex = null) {
+            // CORREGIDO: Usar el dataset correcto
+            const targetDataset = datasetIndex !== null ? datasetIndex : currentActiveDataset;
+            const uniqueId = `op_${targetDataset}_${index}`;
+            const checkbox = document.getElementById(uniqueId);
+            const card = checkbox.closest('.operative-card');
+            
+            if (selectedOperativesByDataset[targetDataset].has(index)) {
+                selectedOperativesByDataset[targetDataset].delete(index);
+                checkbox.checked = false;
+                card.classList.remove('selected');
+            } else {
+                selectedOperativesByDataset[targetDataset].add(index);
+                checkbox.checked = true;
+                card.classList.add('selected');
+            }
+            
+            updateSelectionInfo(targetDataset);
+        }
+
+        function updateSelectionInfo(datasetIndex) {
+            const info = document.getElementById('selectionInfo');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const count = selectedOperativesByDataset[datasetIndex].size;
+            
+            info.textContent = `${count} operativa${count !== 1 ? 's' : ''} seleccionada${count !== 1 ? 's' : ''} (${datasetNames[datasetIndex] || `Archivo ${datasetIndex + 1}`})`;
+            analyzeBtn.disabled = count === 0;
+        }
+
+        function toggleSelectionView() {
+            const container = document.querySelector('.operatives-container');
+            const btn = document.getElementById('toggleSelectionBtn');
+            
+            isSelectionCollapsed = !isSelectionCollapsed;
+            
+            if (isSelectionCollapsed) {
+                container.style.display = 'none';
+                btn.innerHTML = '<i class="fas fa-chevron-down"></i> Mostrar';
+            } else {
+                container.style.display = 'block';
+                btn.innerHTML = '<i class="fas fa-chevron-up"></i> Ocultar';
+            }
+        }
+
+        // Multi-select functions
+        function toggleMultiSelect(type) {
+            const dropdown = document.getElementById(`${type}Dropdown`);
+            const trigger = dropdown.previousElementSibling;
+            
+            // Cerrar otros dropdowns abiertos
+            document.querySelectorAll('.multi-select-dropdown.show').forEach(dd => {
+                if (dd !== dropdown) {
+                    dd.classList.remove('show');
+                    dd.previousElementSibling.classList.remove('active');
+                }
+            });
+            
+            // Toggle el dropdown actual
+            dropdown.classList.toggle('show');
+            trigger.classList.toggle('active');
+        }
+
+        function toggleMultiSelectOption(type, value, checkbox) {
+            const filterKey = type === 'colmena' ? 'colmena' : 'accionRecomendada';
+            
+            if (checkbox.checked) {
+                if (!activeFilters[filterKey].includes(value)) {
+                    activeFilters[filterKey].push(value);
+                }
+            } else {
+                activeFilters[filterKey] = activeFilters[filterKey].filter(v => v !== value);
+            }
+            
+            updateMultiSelectDisplay(type);
+            applyAllFilters();
+        }
+
+        function updateMultiSelectDisplay(type) {
+            const filterKey = type === 'colmena' ? 'colmena' : 'accionRecomendada';
+            const selectedValues = activeFilters[filterKey];
+            const textElement = document.getElementById(`${type}SelectedText`);
+            
+            if (selectedValues.length === 0) {
+                textElement.textContent = 'Todas';
+                textElement.parentElement.querySelector('.multi-select-count')?.remove();
+            } else if (selectedValues.length === 1) {
+                textElement.textContent = selectedValues[0].toUpperCase();
+                textElement.parentElement.querySelector('.multi-select-count')?.remove();
+            } else {
+                textElement.textContent = `${selectedValues.length} seleccionadas`;
+                
+                // Añadir o actualizar contador
+                let countElement = textElement.parentElement.querySelector('.multi-select-count');
+                if (!countElement) {
+                    countElement = document.createElement('span');
+                    countElement.className = 'multi-select-count';
+                    textElement.parentElement.insertBefore(countElement, textElement.nextSibling);
+                }
+                countElement.textContent = selectedValues.length;
+            }
+        }
+
+        // Cerrar dropdowns al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.multi-select-container')) {
+                document.querySelectorAll('.multi-select-dropdown.show').forEach(dropdown => {
+                    dropdown.classList.remove('show');
+                    dropdown.previousElementSibling.classList.remove('active');
+                });
+            }
+        });
+        function displayResults(results, datasetIndex) {
+            // Guardar resultados en el dataset correspondiente
+            analysisResultsByDataset[datasetIndex] = results;
+            
+            // Actualizar tabs para mostrar que hay resultados
+            showDatasetTabs();
+            
+            // Usar los resultados del dataset actual para mostrar
+            filteredResults = [...results];
+            
+            // Reset filters
+            activeFilters = {
+                colmena: [],
+                salidaComparison: '',
+                salidaValue: '',
+                llegadaAreaComparison: '',
+                llegadaAreaValue: '',
+                retrasoAreaComparison: '',
+                retrasoAreaValue: '',
+                llegadaHoraComparison: '',
+                llegadaHoraValue: '',
+                retrasosThreshold: '',
+                accionRecomendada: []
+            };
+            
+            populateResultsFilters();
+            updateResultsDisplay();
+            updateThresholdInfo();
+            
+            // Actualizar título de resultados
+            const resultsTitle = document.getElementById('currentResultsTitle');
+            resultsTitle.textContent = `Resultados - ${datasetNames[datasetIndex] || `Archivo ${datasetIndex + 1}`}`;
+            
+            document.getElementById('resultsSection').classList.remove('hidden');
+        }
+
+        function populateResultsFilters() {
+            const currentResults = analysisResultsByDataset[currentActiveDataset] || [];
+            
+            if (currentResults.length === 0) return;
+            
+            // Populate colmena multi-select
+            const colmenasInResults = new Set();
+            currentResults.forEach(result => {
+                const colmena = extractColmena(result.operativa);
+                if (colmena) colmenasInResults.add(colmena);
+            });
+            
+            const sortedColmenas = Array.from(colmenasInResults).sort();
+            const colmenaDropdown = document.getElementById('colmenaDropdown');
+            
+            colmenaDropdown.innerHTML = sortedColmenas.map(colmena => `
+                <div class="multi-select-option" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="colmena_${colmena}" value="${colmena}" 
+                           onchange="toggleMultiSelectOption('colmena', '${colmena}', this)">
+                    <label for="colmena_${colmena}" class="multi-select-text">${colmena.toUpperCase()}</label>
+                </div>
+            `).join('');
+
+            // Populate clasificacion multi-select
+            const accionesInResults = new Set();
+            currentResults.forEach(result => {
+                if (result.accion) accionesInResults.add(result.accion);
+            });
+            
+            const sortedAcciones = Array.from(accionesInResults).sort();
+            const clasificacionDropdown = document.getElementById('clasificacionDropdown');
+            
+            clasificacionDropdown.innerHTML = sortedAcciones.map(accion => `
+                <div class="multi-select-option" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="accion_${accion.replace(/\s+/g, '_')}" value="${accion}" 
+                           onchange="toggleMultiSelectOption('clasificacion', '${accion}', this)">
+                    <label for="accion_${accion.replace(/\s+/g, '_')}" class="multi-select-text">${accion}</label>
+                </div>
+            `).join('');
+        }
+
+        function applyAllFilters() {
+            const currentResults = analysisResultsByDataset[currentActiveDataset] || [];
+            
+            if (currentResults.length === 0) {
+                filteredResults = [];
+                updateResultsDisplay();
+                updateFilterInfo();
+                return;
+            }
+            
+            filteredResults = currentResults.filter(result => {
+                const colmena = extractColmena(result.operativa);
+                // Cambio: usar array para colmenas
+                const matchesColmena = activeFilters.colmena.length === 0 || activeFilters.colmena.includes(colmena);
+                
+                const evaluatePercentageCriteria = (value, comparison, filterValue) => {
+                    if (comparison === '' || filterValue === '') return true;
+                    
+                    const numValue = parseFloat((value || '0').toString().replace(',', '.')) || 0;
+                    const thresholdValue = parseFloat(filterValue) || 0;
+                    
+                    return comparison === 'gte' ? numValue >= thresholdValue : numValue < thresholdValue;
+                };
+                
+                const matchesSalida = evaluatePercentageCriteria(
+                    result.porcSalidaEnHora, 
+                    activeFilters.salidaComparison, 
+                    activeFilters.salidaValue
+                );
+                const matchesLlegadaArea = evaluatePercentageCriteria(
+                    result.porcLlegadaArea, 
+                    activeFilters.llegadaAreaComparison, 
+                    activeFilters.llegadaAreaValue
+                );
+                const matchesRetrasoArea = evaluatePercentageCriteria(
+                    result.porcRetrasoEnArea, 
+                    activeFilters.retrasoAreaComparison, 
+                    activeFilters.retrasoAreaValue
+                );
+                const matchesLlegadaHora = evaluatePercentageCriteria(
+                    result.porcLlegadaEnHora, 
+                    activeFilters.llegadaHoraComparison, 
+                    activeFilters.llegadaHoraValue
+                );
+                
+                const matchesRetrasosThreshold = (() => {
+                    if (activeFilters.retrasosThreshold === '') return true;
+                    
+                    const threshold = parseFloat(activeFilters.retrasosThreshold);
+                    if (isNaN(threshold)) return true;
+                    
+                    const retrasosValue = parseFloat((result.porcRetrasos || '0').toString().replace(',', '.')) || 0;
+                    return retrasosValue >= threshold;
+                })();
+                
+                // Cambio: usar array para clasificaciones
+                const matchesAccionRecomendada = activeFilters.accionRecomendada.length === 0 || 
+                                               activeFilters.accionRecomendada.includes(result.accion);
+                
+                return matchesColmena && matchesSalida && matchesLlegadaArea && 
+                       matchesRetrasoArea && matchesLlegadaHora && matchesRetrasosThreshold && 
+                       matchesAccionRecomendada;
+            });
+            
+            updateResultsDisplay();
+            updateFilterInfo();
+        }
+
+        function updateFilterInfo() {
+            const resultsFilterInfo = document.getElementById('resultsFilterInfo');
+            const retrasosFilterInfo = document.getElementById('retrasosFilterInfo');
+            const accionFilterInfo = document.getElementById('accionFilterInfo');
+            
+            const total = analysisResultsByDataset[currentActiveDataset] ? analysisResultsByDataset[currentActiveDataset].length : 0;
+            const filtered = filteredResults.length;
+            
+            if (total === 0) {
+                resultsFilterInfo.textContent = '';
+                retrasosFilterInfo.textContent = '';
+                accionFilterInfo.textContent = '';
+                return;
+            }
+            
+            if (filtered === total) {
+                resultsFilterInfo.textContent = '';
+            } else {
+                resultsFilterInfo.textContent = `Mostrando ${filtered} de ${total} operativas`;
+            }
+            
+            const threshold = activeFilters.retrasosThreshold;
+            if (threshold === '' || isNaN(parseFloat(threshold))) {
+                retrasosFilterInfo.textContent = '';
+            } else {
+                retrasosFilterInfo.textContent = `${filtered} operativas con ≥ ${threshold}% retrasos`;
+            }
+            
+            // Información de filtros activos
+            let filterInfoParts = [];
+            
+            if (activeFilters.colmena.length > 0) {
+                const colmenaText = activeFilters.colmena.length === 1 
+                    ? `Colmena: ${activeFilters.colmena[0].toUpperCase()}`
+                    : `${activeFilters.colmena.length} colmenas seleccionadas`;
+                filterInfoParts.push(colmenaText);
+            }
+            
+            if (activeFilters.accionRecomendada.length > 0) {
+                const accionText = activeFilters.accionRecomendada.length === 1 
+                    ? activeFilters.accionRecomendada[0]
+                    : `${activeFilters.accionRecomendada.length} clasificaciones`;
+                filterInfoParts.push(accionText);
+            }
+            
+            if (filterInfoParts.length > 0) {
+                accionFilterInfo.textContent = `${filtered} operativas - ${filterInfoParts.join(', ')}`;
+            } else {
+                accionFilterInfo.textContent = '';
+            }
+        }
+
+        function clearAllFilters() {
+            activeFilters = {
+                colmena: [],
+                salidaComparison: '',
+                salidaValue: '',
+                llegadaAreaComparison: '',
+                llegadaAreaValue: '',
+                retrasoAreaComparison: '',
+                retrasoAreaValue: '',
+                llegadaHoraComparison: '',
+                llegadaHoraValue: '',
+                retrasosThreshold: '',
+                accionRecomendada: []
+            };
+            
+            // Limpiar multi-selects
+            document.querySelectorAll('#colmenaDropdown input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            document.querySelectorAll('#clasificacionDropdown input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Actualizar displays
+            updateMultiSelectDisplay('colmena');
+            updateMultiSelectDisplay('clasificacion');
+            
+            // Limpiar otros filtros
+            document.getElementById('salidaComparison').value = '';
+            document.getElementById('salidaValue').value = '';
+            document.getElementById('llegadaAreaComparison').value = '';
+            document.getElementById('llegadaAreaValue').value = '';
+            document.getElementById('retrasoAreaComparison').value = '';
+            document.getElementById('retrasoAreaValue').value = '';
+            document.getElementById('llegadaHoraComparison').value = '';
+            document.getElementById('llegadaHoraValue').value = '';
+            document.getElementById('retrasosThresholdFilter').value = '';
+            
+            applyAllFilters();
+        }
+
+        function updateThresholdInfo() {
+            const thresholdInfo = document.getElementById('currentThresholdInfo');
+            if (thresholdInfo) {
+                thresholdInfo.textContent = `TR≤${tensionadaRetrasosThreshold}%, TL≤${tensionadaLlegadaThreshold}%, H≥${holguraThreshold}%`;
+            }
+        }
+
+        function updateResultsDisplay() {
+            const total = filteredResults.length;
+            
+            // Update stats
+            const stats = {
+                total: total,
+                tensionadaRetrasos: 0,
+                tensionadaLlegada: 0,
+                holguraTiempo: 0,
+                holguraTiempoVolumen: 0
+            };
+
+            filteredResults.forEach(result => {
+                switch(result.accion) {
+                    case 'Tensionada Retrasos': stats.tensionadaRetrasos++; break;
+                    case 'Tensionada Llegada': stats.tensionadaLlegada++; break;
+                    case 'Holgura Tiempo': stats.holguraTiempo++; break;
+                    case 'Holgura Tiempo-Volumen': stats.holguraTiempoVolumen++; break;
+                }
+            });
+
+            const statsGrid = document.getElementById('statsGrid');
+            if (total > 0) {
+                statsGrid.innerHTML = `
+                    <div class="stat-card danger">
+                        <div class="stat-header">
+                            <div class="stat-title">Tensionadas Retrasos</div>
+                            <i class="fas fa-exclamation-triangle stat-icon"></i>
+                        </div>
+                        <div class="stat-number">${stats.tensionadaRetrasos}</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-header">
+                            <div class="stat-title">Tensionadas Llegada</div>
+                            <i class="fas fa-clock stat-icon"></i>
+                        </div>
+                        <div class="stat-number">${stats.tensionadaLlegada}</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-header">
+                            <div class="stat-title">Holgura Tiempo</div>
+                            <i class="fas fa-check-circle stat-icon"></i>
+                        </div>
+                        <div class="stat-number">${stats.holguraTiempo}</div>
+                    </div>
+                    <div class="stat-card info">
+                        <div class="stat-header">
+                            <div class="stat-title">Holgura Tiempo-Volumen</div>
+                            <i class="fas fa-chart-line stat-icon"></i>
+                        </div>
+                        <div class="stat-number">${stats.holguraTiempoVolumen}</div>
+                    </div>
+                `;
+            } else {
+                statsGrid.innerHTML = '<div style="text-align: center; color: #6b7280;">No hay operativas para mostrar</div>';
+            }
+
+            // Update table
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = filteredResults.map(result => {
+                const salidaValue = parseFloat(formatValue(result.porcSalidaEnHora)) || 0;
+                const llegadaAreaValue = parseFloat(formatValue(result.porcLlegadaArea)) || 0;
+                const retrasoAreaValue = parseFloat(formatValue(result.porcRetrasoEnArea)) || 0;
+                const llegadaHoraValue = parseFloat(formatValue(result.porcLlegadaEnHora)) || 0;
+                const retrasosValue = parseFloat(formatValue(result.porcRetrasos)) || 0;
+                const sinRetrasoValue = parseFloat(formatValue(result.porcSinRetraso)) || 0;
+                
+                // NUEVO: Preparar datos para el tooltip de volumen
+                const colTempus = formatValue(result.colTempus) || '0';
+                const colTeorica = formatValue(result.colTeorica) || '0'; 
+                const colVolumen = formatValue(result.colVolumen) || '0';
+                const tooltipData = `Tempus: ${colTempus}|Teórico: ${colTeorica}|Volumen: ${colVolumen}`;
+                
+                return `
+                <tr>
+                    <td><strong>${result.operativa}</strong></td>
+                    <td>${formatValue(result.rutasDia)}</td>
+                    <td>${formatValue(result.dias)}</td>
+                    <td>${formatValue(result.colPorRuta)}</td>
+                    <td>
+                        <div class="progress-cell">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${retrasosValue}%; background: ${getProgressColor(100 - retrasosValue)};"></div>
+                            </div>
+                            <span class="progress-text">${formatValue(result.porcRetrasos)}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="progress-cell">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${sinRetrasoValue}%; background: ${getProgressColor(sinRetrasoValue)};"></div>
+                            </div>
+                            <span class="progress-text">${formatValue(result.porcSinRetraso)}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="percentage-badge ${getPercentageBadgeClass(salidaValue)}">${formatValue(result.porcSalidaEnHora)}%</span>
+                    </td>
+                    <td>
+                        <span class="percentage-badge ${getPercentageBadgeClass(llegadaAreaValue)}">${formatValue(result.porcLlegadaArea)}%</span>
+                    </td>
+                    <td>
+                        <span class="percentage-badge ${getPercentageBadgeClass(retrasoAreaValue, true)}">${formatValue(result.porcRetrasoEnArea)}%</span>
+                    </td>
+                    <td>
+                        <span class="percentage-badge ${getPercentageBadgeClass(llegadaHoraValue)}">${formatValue(result.porcLlegadaEnHora)}%</span>
+                    </td>
+                    <td><span class="status-badge ${getStatusClass(result.accion)}">${result.accion}</span></td>
+                    <td class="volume-tooltip-cell" data-volume-info="${tooltipData}" data-title="Detalles de Volumen - ${result.operativa}">
+                        <span class="status-badge ${result.volumeProblems.hasProblems ? 'status-warning' : 'status-success'}">${result.volumeProblems.message}</span>
+                    </td>
+                    <td style="font-size: 0.6875rem;">${createRecommendations(result)}</td>
+                </tr>
+                `;
+            }).join('');
+            
+            // NUEVO: Añadir event listeners para tooltips de volumen
+            addVolumeTooltipListeners();
+        }
+
+        // Summary functions
+        function showSummaryTab() {
+            // Verificar si hay análisis en cualquier dataset
+            let hasResults = false;
+            for (let i = 0; i < analysisResultsByDataset.length; i++) {
+                if (analysisResultsByDataset[i] && analysisResultsByDataset[i].length > 0) {
+                    hasResults = true;
+                    break;
+                }
+            }
+            
+            if (!hasResults) {
+                document.getElementById('summaryContent').classList.add('hidden');
+                document.getElementById('noSummaryData').style.display = 'block';
+                return;
+            }
+
+            // NUEVO: Poblar selector con archivos analizados
+            populateWeekSelector();
+            
+            // Generar resumen con la selección actual
+            updateSummaryView();
+            
+            document.getElementById('summaryContent').classList.remove('hidden');
+            document.getElementById('noSummaryData').style.display = 'none';
+        }
+
+        // NUEVA: Función para poblar el selector de semanas
+        function populateWeekSelector() {
+            const selector = document.getElementById('summaryWeekSelector');
+            
+            // Limpiar opciones existentes excepto "Todas las semanas"
+            selector.innerHTML = '<option value="all">Todas las semanas</option>';
+            
+            // Añadir cada archivo analizado
+            datasets.forEach((data, index) => {
+                if (data && analysisResultsByDataset[index] && analysisResultsByDataset[index].length > 0) {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = datasetNames[index] || `Archivo ${index + 1}`;
+                    selector.appendChild(option);
+                }
+            });
+        }
+
+        // CORRECCIÓN: Agrupar por colmena y clasificación directamente
+        function updateSummaryView() {
+            const selector = document.getElementById('summaryWeekSelector');
+            const selectedValue = selector.value;
+            
+            let allSummaryData = [];
+            
+            // Consolidar datos según selección
+            if (selectedValue === 'all') {
+                datasets.forEach((data, index) => {
+                    if (data && analysisResultsByDataset[index] && analysisResultsByDataset[index].length > 0) {
+                        const datasetResults = analysisResultsByDataset[index].map(result => ({
+                            ...result,
+                            datasetName: datasetNames[index] || `Archivo ${index + 1}`,
+                            datasetIndex: index
+                        }));
+                        allSummaryData.push(...datasetResults);
+                    }
+                });
+            } else {
+                const datasetIndex = parseInt(selectedValue);
+                if (datasets[datasetIndex] && analysisResultsByDataset[datasetIndex] && analysisResultsByDataset[datasetIndex].length > 0) {
+                    allSummaryData = analysisResultsByDataset[datasetIndex].map(result => ({
+                        ...result,
+                        datasetName: datasetNames[datasetIndex] || `Archivo ${datasetIndex + 1}`,
+                        datasetIndex: datasetIndex
+                    }));
+                }
+            }
+
+            if (allSummaryData.length === 0) {
+                document.getElementById('summaryContent').classList.add('hidden');
+                document.getElementById('noSummaryData').style.display = 'block';
+                return;
+            }
+
+            // Funciones auxiliares para consolidar tooltips
+            function addToConsolidatedTooltip(tooltipMap, operativa, datasetName, isConsolidatedView) {
+                if (!tooltipMap.has(operativa)) {
+                    tooltipMap.set(operativa, new Set());
+                }
+                if (isConsolidatedView === 'all' && datasetName) {
+                    tooltipMap.get(operativa).add(datasetName);
+                }
+            }
+            
+            function mapToTooltipArray(tooltipMap, isConsolidatedView) {
+                const result = [];
+                for (const [operativa, datasets] of tooltipMap.entries()) {
+                    if (isConsolidatedView === 'all' && datasets.size > 0) {
+                        const datasetsList = Array.from(datasets).sort().join(', ');
+                        result.push(`${operativa} (${datasetsList})`);
+                    } else {
+                        result.push(operativa);
+                    }
+                }
+                return result.sort();
+            }
+
+            // NUEVO ENFOQUE: Agrupar por colmena y clasificación usando Sets
+            const colmenaGroups = {};
+            const operativesByColmenaAndAction = {};
+            const rutasDiaByOperativa = {}; // NUEVO: Trackear rutas/día por operativa
+            
+            // Crear estructura inicial para cada colmena encontrada
+            const allColmenas = new Set();
+            allSummaryData.forEach(result => {
+                const colmena = extractColmena(result.operativa);
+                if (colmena) allColmenas.add(colmena);
+            });
+            
+            allColmenas.forEach(colmena => {
+                colmenaGroups[colmena] = {
+                    tensionadaRetrasos: new Set(),
+                    tensionadaLlegada: new Set(),
+                    holguraTiempo: new Set(),
+                    holguraTiempoVolumen: new Set(),
+                    todasOperativas: new Set()
+                };
+                
+                operativesByColmenaAndAction[colmena] = {
+                    tensionadaRetrasos: [],
+                    tensionadaLlegada: [],
+                    holguraTiempo: [],
+                    holguraTiempoVolumen: []
+                };
+            });
+            
+            // PASO 1: Recopilar rutas/día por operativa (puede aparecer en múltiples semanas)
+            allSummaryData.forEach(result => {
+                const operativa = result.operativa;
+                const colmena = extractColmena(operativa);
+                if (!colmena || !operativa) return;
+                
+                // Solo procesar operativas CON clasificación válida para rutas/día
+                if (['Tensionada Retrasos', 'Tensionada Llegada', 'Holgura Tiempo', 'Holgura Tiempo-Volumen'].includes(result.accion)) {
+                    const rutasDia = parseFloat((result.rutasDia || '0').toString().replace(',', '.')) || 0;
+                    
+                    if (rutasDia > 0) {
+                        if (!rutasDiaByOperativa[operativa]) {
+                            rutasDiaByOperativa[operativa] = {
+                                colmena: colmena,
+                                valores: []
+                            };
+                        }
+                        rutasDiaByOperativa[operativa].valores.push(rutasDia);
+                    }
+                }
+            });
+            
+            // PASO 2: Llenar los Sets con operativas únicas por clasificación
+            // NUEVO: Estructura para consolidar tooltips sin duplicados
+            const consolidatedTooltips = {};
+            allColmenas.forEach(colmena => {
+                consolidatedTooltips[colmena] = {
+                    tensionadaRetrasos: new Map(),
+                    tensionadaLlegada: new Map(),
+                    holguraTiempo: new Map(),
+                    holguraTiempoVolumen: new Map()
+                };
+            });
+            
+            allSummaryData.forEach(result => {
+                const operativa = result.operativa;
+                const colmena = extractColmena(operativa);
+                if (!colmena || !operativa) return;
+                
+                const group = colmenaGroups[colmena];
+                
+                // Agregar a set total de operativas de la colmena
+                group.todasOperativas.add(operativa);
+                
+                // NUEVO: Consolidar tooltips por operativa única
+                const datasetName = result.datasetName || '';
+                
+                // Solo clasificaciones válidas (Sin Clasificar ya está excluido)
+                switch(result.accion) {
+                    case 'Tensionada Retrasos':
+                        group.tensionadaRetrasos.add(operativa);
+                        addToConsolidatedTooltip(consolidatedTooltips[colmena].tensionadaRetrasos, operativa, datasetName, selectedValue);
+                        break;
+                    case 'Tensionada Llegada':
+                        group.tensionadaLlegada.add(operativa);
+                        addToConsolidatedTooltip(consolidatedTooltips[colmena].tensionadaLlegada, operativa, datasetName, selectedValue);
+                        break;
+                    case 'Holgura Tiempo':
+                        group.holguraTiempo.add(operativa);
+                        addToConsolidatedTooltip(consolidatedTooltips[colmena].holguraTiempo, operativa, datasetName, selectedValue);
+                        break;
+                    case 'Holgura Tiempo-Volumen':
+                        group.holguraTiempoVolumen.add(operativa);
+                        addToConsolidatedTooltip(consolidatedTooltips[colmena].holguraTiempoVolumen, operativa, datasetName, selectedValue);
+                        break;
+                }
+            });
+            
+            // Convertir Maps consolidados a arrays para tooltips
+            allColmenas.forEach(colmena => {
+                operativesByColmenaAndAction[colmena] = {
+                    tensionadaRetrasos: mapToTooltipArray(consolidatedTooltips[colmena].tensionadaRetrasos, selectedValue),
+                    tensionadaLlegada: mapToTooltipArray(consolidatedTooltips[colmena].tensionadaLlegada, selectedValue),
+                    holguraTiempo: mapToTooltipArray(consolidatedTooltips[colmena].holguraTiempo, selectedValue),
+                    holguraTiempoVolumen: mapToTooltipArray(consolidatedTooltips[colmena].holguraTiempoVolumen, selectedValue)
+                };
+            });
+            
+            // PASO 3: Calcular suma de rutas/día por colmena
+            const rutasDiaTotalByColmena = {};
+            allColmenas.forEach(colmena => {
+                rutasDiaTotalByColmena[colmena] = 0;
+            });
+            
+            // Para cada operativa única, calcular su valor final de rutas/día
+            Object.keys(rutasDiaByOperativa).forEach(operativa => {
+                const data = rutasDiaByOperativa[operativa];
+                const colmena = data.colmena;
+                
+                // Si la operativa aparece en múltiples semanas, promediar
+                // Si solo aparece en una semana, usar ese valor
+                const valorFinal = data.valores.length > 0 ? 
+                    data.valores.reduce((sum, val) => sum + val, 0) / data.valores.length : 0;
+                
+                // SUMAR (no promediar) al total de la colmena
+                rutasDiaTotalByColmena[colmena] += valorFinal;
+            });
+            
+            // Convertir Sets a números para la tabla
+            const finalColmenaGroups = {};
+            Object.keys(colmenaGroups).forEach(colmena => {
+                const group = colmenaGroups[colmena];
+                finalColmenaGroups[colmena] = {
+                    total: group.todasOperativas.size,
+                    tensionadaRetrasos: group.tensionadaRetrasos.size,
+                    tensionadaLlegada: group.tensionadaLlegada.size,
+                    holguraTiempo: group.holguraTiempo.size,
+                    holguraTiempoVolumen: group.holguraTiempoVolumen.size,
+                    rutasDiaTotal: Math.round(rutasDiaTotalByColmena[colmena] || 0)
+                };
+            });
+            
+            createSummaryTable(finalColmenaGroups, operativesByColmenaAndAction, selectedValue);
+        }
+
+        // Actualizar createSummaryTable para trabajar con la nueva estructura
+        function createSummaryTable(colmenaGroups, operativesByColmenaAndAction, selectedView = 'all') {
+            const colmenas = Object.keys(colmenaGroups).sort();
+            
+            if (colmenas.length === 0) {
+                document.getElementById('summaryTable').innerHTML = 
+                    '<div style="padding: 2rem; text-align: center; color: #6b7280;">No hay datos por colmena</div>';
+                return;
+            }
+            
+            function getColmenaColor(colmena) {
+                const colmenaLower = colmena.toLowerCase();
+                switch(colmenaLower) {
+                    case 'vlc1': return '#d6e2c3';
+                    case 'bcn1': return '#c7d4de';
+                    case 'mad1': return '#f0cec6';
+                    case 'alc1': return '#fcf7c8';
+                    case 'svq1': return '#e1c4df';
+                    case 'mad2': return '#e7c0d0';
+                    default: return '#374151';
+                }
+            }
+
+            function createTooltipCell(content, operativas, title, color) {
+                const displayValue = content === 0 ? '--' : content;
+                
+                if (operativas && operativas.length > 0) {
+                    // Remover duplicados manteniendo orden
+                    const uniqueOperativas = [...new Set(operativas)];
+                    const operativasText = uniqueOperativas.join('|');
+                    return `<td class="tooltip-cell" data-operativas="${operativasText}" data-title="${title}" style="color: ${color}; font-weight: 600;">${displayValue}</td>`;
+                } else {
+                    return `<td style="color: ${color}; font-weight: 600;">--</td>`;
+                }
+            }
+
+            // Header dinámico según la selección
+            let headerContent = '';
+            if (selectedView === 'all') {
+                const datasetsCount = getLoadedDatasetsCount();
+                const analysisCount = analysisResultsByDataset.filter(results => results && results.length > 0).length;
+                const currentDate = new Date().toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit'
+                });
+                headerContent = `<span style="font-size: 0.8125rem;">${currentDate}<br>${analysisCount} de ${datasetsCount} archivo${datasetsCount !== 1 ? 's' : ''} analizados</span>`;
+            } else {
+                const datasetIndex = parseInt(selectedView);
+                const currentDate = new Date().toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit'
+                });
+                const fileName = datasetNames[datasetIndex] || `Archivo ${datasetIndex + 1}`;
+                headerContent = `<span style="font-size: 0.8125rem;">${currentDate}<br>${fileName}</span>`;
+            }
+            
+            let tableHTML = `
+                <div class="summary-table-container">
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th style="background: #374151; color: #e5e7eb; width: 175px;">
+                                    ${headerContent}
+                                </th>
+                                ${colmenas.map(colmena => 
+                                    `<th style="background: ${getColmenaColor(colmena)}; color: #1f2937;">${colmena.toUpperCase()}</th>`
+                                ).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="background: #374151; color: #e5e7eb; text-align: center; font-weight: 600;">
+                                    Operativas Totales
+                                </td>
+                                ${colmenas.map(colmena => 
+                                    `<td style="color: #e5e7eb; font-weight: 600;">${colmenaGroups[colmena].total}</td>`
+                                ).join('')}
+                            </tr>
+                            <tr>
+                                <td style="background: #374151; color: #e5e7eb; text-align: center; font-weight: 600;">
+                                    <span class="status-badge status-danger">Tensionadas Retrasos</span>
+                                </td>
+                                ${colmenas.map(colmena => {
+                                    const count = colmenaGroups[colmena].tensionadaRetrasos;
+                                    return createTooltipCell(
+                                        count,
+                                        operativesByColmenaAndAction[colmena]?.tensionadaRetrasos,
+                                        `Operativas únicas tensionadas por retrasos en ${colmena.toUpperCase()}`,
+                                        '#ef4444'
+                                    );
+                                }).join('')}
+                            </tr>
+                            <tr>
+                                <td style="background: #374151; color: #e5e7eb; text-align: center; font-weight: 600;">
+                                    <span class="status-badge status-warning">Tensionadas Llegada</span>
+                                </td>
+                                ${colmenas.map(colmena => {
+                                    const count = colmenaGroups[colmena].tensionadaLlegada;
+                                    return createTooltipCell(
+                                        count,
+                                        operativesByColmenaAndAction[colmena]?.tensionadaLlegada,
+                                        `Operativas únicas tensionadas por llegada en ${colmena.toUpperCase()}`,
+                                        '#f59e0b'
+                                    );
+                                }).join('')}
+                            </tr>
+                            <tr>
+                                <td style="background: #374151; color: #e5e7eb; text-align: center; font-weight: 600;">
+                                    <span class="status-badge status-success">Holgura Tiempo</span>
+                                </td>
+                                ${colmenas.map(colmena => {
+                                    const count = colmenaGroups[colmena].holguraTiempo;
+                                    return createTooltipCell(
+                                        count,
+                                        operativesByColmenaAndAction[colmena]?.holguraTiempo,
+                                        `Operativas únicas con holgura de tiempo en ${colmena.toUpperCase()}`,
+                                        '#10b981'
+                                    );
+                                }).join('')}
+                            </tr>
+                            <tr>
+                                <td style="background: #374151; color: #e5e7eb; text-align: center; font-weight: 600;">
+                                    <span class="status-badge status-info">Holgura Tiempo-Volumen</span>
+                                </td>
+                                ${colmenas.map(colmena => {
+                                    const count = colmenaGroups[colmena].holguraTiempoVolumen;
+                                    return createTooltipCell(
+                                        count,
+                                        operativesByColmenaAndAction[colmena]?.holguraTiempoVolumen,
+                                        `Operativas únicas con holgura tiempo-volumen en ${colmena.toUpperCase()}`,
+                                        '#06b6d4'
+                                    );
+                                }).join('')}
+                            </tr>
+                            <tr>
+                                <td style="background: #374151; color: #e5e7eb; text-align: center; font-weight: 600;">
+                                    Rutas/día Promedio
+                                </td>
+                                ${colmenas.map(colmena => {
+                                    const rutasTotal = colmenaGroups[colmena].rutasDiaTotal;
+                                    const displayValue = rutasTotal > 0 ? rutasTotal : '--';
+                                    return `<td style="color: #3b82f6; font-weight: 600;">${displayValue}</td>`;
+                                }).join('')}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.getElementById('summaryTable').innerHTML = tableHTML;
+            
+            // Añadir event listeners para tooltips
+            addTooltipListeners();
+        }
+
+        // Funciones para manejar tooltips del resumen
+        function addTooltipListeners() {
+            const tooltipCells = document.querySelectorAll('.tooltip-cell');
+            
+            tooltipCells.forEach(cell => {
+                cell.addEventListener('mouseenter', showTooltip);
+                cell.addEventListener('mouseleave', hideTooltip);
+                cell.addEventListener('mousemove', moveTooltip);
+            });
+        }
+
+        function showTooltip(event) {
+            const cell = event.target;
+            const title = cell.getAttribute('data-title');
+            const operativasText = cell.getAttribute('data-operativas');
+            
+            if (!title || !operativasText) return;
+            
+            const operativas = operativasText.split('|');
+            
+            // Crear tooltip si no existe
+            let tooltip = document.getElementById('summary-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'summary-tooltip';
+                tooltip.className = 'tooltip';
+                document.body.appendChild(tooltip);
+            }
+            
+            const operativasList = operativas.map(op => `<div class="tooltip-operativa">• ${op}</div>`).join('');
+            
+            tooltip.innerHTML = `
+                <div class="tooltip-title">${title}</div>
+                <div class="tooltip-content">${operativasList}</div>
+            `;
+            
+            // Posicionar tooltip
+            moveTooltip(event);
+            
+            // Mostrar tooltip
+            tooltip.classList.add('visible');
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('summary-tooltip');
+            if (tooltip) {
+                tooltip.classList.remove('visible');
+            }
+        }
+
+        function moveTooltip(event) {
+            const tooltip = document.getElementById('summary-tooltip');
+            if (!tooltip) return;
+            
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            let left = mouseX + 15;
+            let top = mouseY - 10;
+            
+            // Ajustar si se sale por la derecha
+            if (left + tooltipRect.width > windowWidth) {
+                left = mouseX - tooltipRect.width - 15;
+            }
+            
+            // Ajustar si se sale por abajo
+            if (top + tooltipRect.height > windowHeight) {
+                top = mouseY - tooltipRect.height - 10;
+            }
+            
+            // Ajustar si se sale por arriba
+            if (top < 0) {
+                top = mouseY + 15;
+            }
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+
+        // Funciones para manejar tooltips de volumen
+        function addVolumeTooltipListeners() {
+            const volumeCells = document.querySelectorAll('.volume-tooltip-cell');
+            
+            volumeCells.forEach(cell => {
+                cell.addEventListener('mouseenter', showVolumeTooltip);
+                cell.addEventListener('mouseleave', hideVolumeTooltip);
+                cell.addEventListener('mousemove', moveVolumeTooltip);
+            });
+        }
+
+        function showVolumeTooltip(event) {
+            const cell = event.target.closest('.volume-tooltip-cell');
+            const title = cell.getAttribute('data-title');
+            const volumeInfo = cell.getAttribute('data-volume-info');
+            
+            if (!title || !volumeInfo) return;
+            
+            const volumeData = volumeInfo.split('|');
+            
+            // Crear tooltip si no existe
+            let tooltip = document.getElementById('volume-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'volume-tooltip';
+                tooltip.className = 'tooltip';
+                document.body.appendChild(tooltip);
+            }
+            
+            const volumeList = volumeData.map(data => `<div style="padding: 0.125rem 0; font-size: 0.6875rem;">• ${data}</div>`).join('');
+            
+            tooltip.innerHTML = `
+                <div class="tooltip-title">${title}</div>
+                <div class="tooltip-content">${volumeList}</div>
+            `;
+            
+            // Posicionar tooltip
+            moveVolumeTooltip(event);
+            
+            // Mostrar tooltip
+            tooltip.classList.add('visible');
+        }
+
+        function hideVolumeTooltip() {
+            const tooltip = document.getElementById('volume-tooltip');
+            if (tooltip) {
+                tooltip.classList.remove('visible');
+            }
+        }
+
+        function moveVolumeTooltip(event) {
+            const tooltip = document.getElementById('volume-tooltip');
+            if (!tooltip) return;
+            
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            let left = mouseX + 15;
+            let top = mouseY - 10;
+            
+            // Ajustar si se sale por la derecha
+            if (left + tooltipRect.width > windowWidth) {
+                left = mouseX - tooltipRect.width - 15;
+            }
+            
+            // Ajustar si se sale por abajo
+            if (top + tooltipRect.height > windowHeight) {
+                top = mouseY - tooltipRect.height - 10;
+            }
+            
+            // Ajustar si se sale por arriba
+            if (top < 0) {
+                top = mouseY + 15;
+            }
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            switchTab('analysis');
+            
+            document.querySelectorAll('[data-tab]').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    switchTab(this.dataset.tab);
+                });
+            });
+        });
+
+        // File upload para 4 archivos
+        for (let i = 1; i <= 4; i++) {
+            document.getElementById(`csvFile${i}`).addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        processCSV(e.target.result, i - 1, file.name);
+                    };
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        // Operative selection
+        document.getElementById('selectAllBtn').addEventListener('click', function() {
+            const currentData = datasets[currentActiveDataset];
+            if (!currentData) return;
+            
+            const currentSelections = selectedOperativesByDataset[currentActiveDataset];
+            const isSelectingAll = currentSelections.size < currentData.length;
+            
+            if (isSelectingAll) {
+                // Seleccionar todas las operativas
+                currentData.forEach((_, index) => {
+                    currentSelections.add(index);
+                });
+                this.innerHTML = '<i class="fas fa-square"></i> Deseleccionar Todas';
+            } else {
+                // Deseleccionar todas las operativas
+                currentSelections.clear();
+                this.innerHTML = '<i class="fas fa-check-square"></i> Seleccionar Todas';
+            }
+            
+            // CORREGIDO: Actualizar la UI correctamente
+            renderOperatives(currentActiveDataset);
+            updateSelectionInfo(currentActiveDataset);
+        });
+
+        document.getElementById('analyzeBtn').addEventListener('click', function() {
+            const currentData = datasets[currentActiveDataset];
+            if (!currentData || selectedOperativesByDataset[currentActiveDataset].size === 0) return;
+            
+            const selectedData = Array.from(selectedOperativesByDataset[currentActiveDataset]).map(index => currentData[index]);
+            const results = selectedData.map(row => analyzeDelay(row));
+            displayResults(results, currentActiveDataset);
+        });
+
+        document.getElementById('toggleSelectionBtn').addEventListener('click', toggleSelectionView);
+
+        // Search and filter
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const selectedColmena = document.getElementById('colmenaFilter').value;
+            const currentData = datasets[currentActiveDataset];
+            
+            if (!currentData) return;
+            
+            filteredOperativesByDataset[currentActiveDataset] = currentData
+                .map((row, index) => ({ ...row, originalIndex: index }))
+                .filter(row => {
+                    const matchesSearch = searchTerm === '' || 
+                        (row.operativa || '').toLowerCase().includes(searchTerm);
+                    
+                    const operativaColmena = extractColmena(row.operativa);
+                    const matchesColmena = selectedColmena === '' || operativaColmena === selectedColmena;
+                    
+                    return matchesSearch && matchesColmena;
+                });
+            
+            renderOperatives(currentActiveDataset);
+        });
+
+        document.getElementById('colmenaFilter').addEventListener('change', function(e) {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const selectedColmena = e.target.value;
+            const currentData = datasets[currentActiveDataset];
+            
+            if (!currentData) return;
+            
+            filteredOperativesByDataset[currentActiveDataset] = currentData
+                .map((row, index) => ({ ...row, originalIndex: index }))
+                .filter(row => {
+                    const matchesSearch = searchTerm === '' || 
+                        (row.operativa || '').toLowerCase().includes(searchTerm);
+                    
+                    const operativaColmena = extractColmena(row.operativa);
+                    const matchesColmena = selectedColmena === '' || operativaColmena === selectedColmena;
+                    
+                    return matchesSearch && matchesColmena;
+                });
+            
+            renderOperatives(currentActiveDataset);
+        });
+
+        // Results filters - Actualizado para remover listeners de elementos que ya no existen
+        document.addEventListener('change', function(e) {
+            if (e.target.id === 'salidaComparison') {
+                activeFilters.salidaComparison = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'llegadaAreaComparison') {
+                activeFilters.llegadaAreaComparison = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'retrasoAreaComparison') {
+                activeFilters.retrasoAreaComparison = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'llegadaHoraComparison') {
+                activeFilters.llegadaHoraComparison = e.target.value;
+                applyAllFilters();
+            }
+        });
+
+        document.addEventListener('input', function(e) {
+            if (e.target.id === 'salidaValue') {
+                activeFilters.salidaValue = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'llegadaAreaValue') {
+                activeFilters.llegadaAreaValue = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'retrasoAreaValue') {
+                activeFilters.retrasoAreaValue = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'llegadaHoraValue') {
+                activeFilters.llegadaHoraValue = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'retrasosThresholdFilter') {
+                activeFilters.retrasosThreshold = e.target.value;
+                applyAllFilters();
+            }
+        });
+
+        document.getElementById('clearFiltersBtn').addEventListener('click', clearAllFilters);
+
+        // Settings
+        ['tensionadaRetrasosInput', 'tensionadaLlegadaInput', 'holguraInput'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                document.getElementById('applyThreshold').disabled = false;
+            });
+        });
+
+        document.getElementById('applyThreshold').addEventListener('click', function() {
+            tensionadaRetrasosThreshold = parseInt(document.getElementById('tensionadaRetrasosInput').value);
+            tensionadaLlegadaThreshold = parseInt(document.getElementById('tensionadaLlegadaInput').value);
+            holguraThreshold = parseInt(document.getElementById('holguraInput').value);
+            
+            // Re-analizar todos los datasets con los nuevos umbrales
+            let hasResults = false;
+            datasets.forEach((data, index) => {
+                if (data && selectedOperativesByDataset[index].size > 0) {
+                    const selectedData = Array.from(selectedOperativesByDataset[index]).map(idx => data[idx]);
+                    const results = selectedData.map(row => analyzeDelay(row));
+                    analysisResultsByDataset[index] = results;
+                    hasResults = true;
+                }
+            });
+            
+            // Actualizar vista actual si hay resultados
+            if (hasResults && analysisResultsByDataset[currentActiveDataset].length > 0) {
+                displayResults(analysisResultsByDataset[currentActiveDataset], currentActiveDataset);
+            }
+            
+            // Actualizar tabs
+            showDatasetTabs();
+            
+            this.innerHTML = '<i class="fas fa-check"></i> Configuración Aplicada';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-save"></i> Aplicar Configuración';
+            }, 2000);
+        });
+
+        // Download
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            // Consolidar todos los resultados para descarga
+            const allResults = [];
+            datasets.forEach((data, index) => {
+                if (data && analysisResultsByDataset[index].length > 0) {
+                    allResults.push(...analysisResultsByDataset[index].map(result => ({
+                        ...result,
+                        dataset: datasetNames[index] || `Archivo ${index + 1}`
+                    })));
+                }
+            });
+            
+            if (allResults.length === 0) {
+                alert('No hay datos para descargar');
+                return;
+            }
+            
+            const csvData = allResults.map(result => ({
+                'Operativa': result.operativa || '',
+                'Rutas por Día': formatValue(result.rutasDia),
+                'Días': formatValue(result.dias),
+                'Columnas por Ruta': formatValue(result.colPorRuta),
+                '% Retrasos': formatValue(result.porcRetrasos),
+                '% Sin Retraso': formatValue(result.porcSinRetraso),
+                '% Salida en Hora': formatValue(result.porcSalidaEnHora),
+                '% Llegada Área': formatValue(result.porcLlegadaArea),
+                '% Retraso en Área': formatValue(result.porcRetrasoEnArea),
+                '% Llegada en Hora': formatValue(result.porcLlegadaEnHora),
+                'Clasificación': result.accion || '',
+                'Problemas de Volumen': result.volumeProblems ? result.volumeProblems.message : '',
+                'Posibles Acciones': createPlainTextRecommendations(result),
+                'Col Teóricas': formatValue(result.colTeorica),
+                'PD Teórico': formatValue(result.pdTeorico),
+                'UD Teórico': formatValue(result.udTeorico),
+                'Col Tempus': formatValue(result.colTempus),
+                'PD Tempus': formatValue(result.pdTempus),
+                'UD Tempus': formatValue(result.udTempus),
+                'Col Volumen': formatValue(result.colVolumen),
+                'Fecha Análisis': new Date().toLocaleDateString('es-ES')
+            }));
+            
+            const headers = Object.keys(csvData[0]);
+            const csvContent = [
+                headers.join(','),
+                ...csvData.map(row => headers.map(header => `"${row[header]}"`).join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `analisis_consolidado_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Visual feedback
+            const btn = document.getElementById('downloadBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Descargado';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
