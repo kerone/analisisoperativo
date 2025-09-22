@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Favicon para navegadores -->
+        <!-- Favicon para navegadores -->
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icon.png">
 
 <!-- Para compatibilidad con algunos navegadores antiguos -->
 <link rel="shortcut icon" href="icon.png" type="image/png">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Análisis Operativo</title>
@@ -41,6 +40,11 @@
             position: fixed;
             height: 100vh;
             z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-250px);
         }
 
         .sidebar-header {
@@ -99,6 +103,11 @@
             flex: 1;
             margin-left: 250px;
             background: #0f1419;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.sidebar-collapsed {
+            margin-left: 0;
         }
 
         .header {
@@ -114,6 +123,32 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Botón para toggle del sidebar */
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-toggle:hover {
+            background: #374151;
+            color: #e5e7eb;
         }
 
         .page-title {
@@ -995,7 +1030,11 @@
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
-                transform: translateX(-100%);
+                transform: translateX(-250px);
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
             }
 
             .main-content {
@@ -1013,6 +1052,10 @@
 
             .percentage-filters {
                 grid-template-columns: 1fr;
+            }
+
+            .header-left {
+                gap: 0.75rem;
             }
         }
     </style>
@@ -1048,10 +1091,15 @@
             <!-- Header -->
             <div class="header">
                 <div class="header-content">
-                    <div>
-                        <h1 class="page-title" id="pageTitle">Dashboard de Análisis</h1>
-                        <div class="breadcrumb">
-                            
+                    <div class="header-left">
+                        <button id="sidebarToggle" class="sidebar-toggle" title="Ocultar/Mostrar menú">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <div>
+                            <h1 class="page-title" id="pageTitle">Dashboard de Análisis</h1>
+                            <div class="breadcrumb">
+                                
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1431,6 +1479,7 @@
         let tensionadaRetrasosThreshold = 60;
         let tensionadaLlegadaThreshold = 60;
         let holguraThreshold = 90;
+        let sidebarCollapsed = false; // NUEVO: Estado del sidebar
         
         // Arrays para manejar múltiples datasets
         let datasets = [null, null, null, null];
@@ -1456,6 +1505,126 @@
             retrasosThreshold: '',
             accionRecomendada: [] // Cambiado a array para selección múltiple
         };
+
+        // NUEVA: Función para inicializar el estado del sidebar al cargar la página
+        function initializeSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const toggleButton = document.getElementById('sidebarToggle');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                // En móvil: sidebar oculto por defecto
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('sidebar-collapsed');
+                
+                const icon = toggleButton.querySelector('i');
+                icon.className = 'fas fa-chevron-right';
+                toggleButton.title = 'Desplegar menú';
+            } else {
+                // En desktop: sidebar visible por defecto
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('sidebar-collapsed');
+                sidebarCollapsed = false;
+                
+                const icon = toggleButton.querySelector('i');
+                icon.className = 'fas fa-chevron-left';
+                toggleButton.title = 'Plegar menú';
+            }
+        }
+
+        // NUEVA: Función para toggle del sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const toggleButton = document.getElementById('sidebarToggle');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                // En móviles, usar clase mobile-open
+                sidebar.classList.toggle('mobile-open');
+                const icon = toggleButton.querySelector('i');
+                if (sidebar.classList.contains('mobile-open')) {
+                    icon.className = 'fas fa-times';
+                    toggleButton.title = 'Cerrar menú';
+                } else {
+                    icon.className = 'fas fa-chevron-right';
+                    toggleButton.title = 'Desplegar menú';
+                }
+            } else {
+                // En desktop, usar collapsed
+                sidebarCollapsed = !sidebarCollapsed;
+                sidebar.classList.toggle('collapsed', sidebarCollapsed);
+                mainContent.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+                
+                // Cambiar icono del botón según estado
+                const icon = toggleButton.querySelector('i');
+                if (sidebarCollapsed) {
+                    icon.className = 'fas fa-chevron-right';
+                    toggleButton.title = 'Desplegar menú';
+                } else {
+                    icon.className = 'fas fa-chevron-left';
+                    toggleButton.title = 'Plegar menú';
+                }
+            }
+        }
+
+        // NUEVA: Función para cerrar sidebar en móvil al hacer clic fuera
+        function handleOutsideClick(event) {
+            const sidebar = document.querySelector('.sidebar');
+            const toggleButton = document.getElementById('sidebarToggle');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile && sidebar.classList.contains('mobile-open')) {
+                if (!sidebar.contains(event.target) && !toggleButton.contains(event.target)) {
+                    sidebar.classList.remove('mobile-open');
+                    const icon = toggleButton.querySelector('i');
+                    icon.className = 'fas fa-chevron-right';
+                    toggleButton.title = 'Desplegar menú';
+                }
+            }
+        }
+
+        // NUEVA: Función para manejar redimensionado de ventana
+        function handleResize() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const toggleButton = document.getElementById('sidebarToggle');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                // Limpiar clases de desktop
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('sidebar-collapsed');
+                
+                // Configurar icono para móvil
+                const icon = toggleButton.querySelector('i');
+                if (sidebar.classList.contains('mobile-open')) {
+                    icon.className = 'fas fa-times';
+                    toggleButton.title = 'Cerrar menú';
+                } else {
+                    icon.className = 'fas fa-chevron-right';
+                    toggleButton.title = 'Desplegar menú';
+                }
+            } else {
+                // Limpiar clases de móvil
+                sidebar.classList.remove('mobile-open');
+                
+                // Restaurar estado de desktop
+                sidebar.classList.toggle('collapsed', sidebarCollapsed);
+                mainContent.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+                
+                // Configurar icono para desktop
+                const icon = toggleButton.querySelector('i');
+                if (sidebarCollapsed) {
+                    icon.className = 'fas fa-chevron-right';
+                    toggleButton.title = 'Desplegar menú';
+                } else {
+                    icon.className = 'fas fa-chevron-left';
+                    toggleButton.title = 'Plegar menú';
+                }
+            }
+        }
 
         // Tab switching functionality
         function switchTab(tabName) {
@@ -2971,6 +3140,14 @@
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
             switchTab('analysis');
+            
+            // NUEVO: Inicializar estado correcto del sidebar al cargar la página
+            initializeSidebar();
+            
+            // Event listeners para sidebar toggle
+            document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
+            document.addEventListener('click', handleOutsideClick);
+            window.addEventListener('resize', handleResize);
             
             document.querySelectorAll('[data-tab]').forEach(item => {
                 item.addEventListener('click', function(e) {
