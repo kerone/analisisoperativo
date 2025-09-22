@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-        <!-- Favicon para navegadores -->
+            <!-- Favicon para navegadores -->
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icon.png">
 
@@ -1347,9 +1347,21 @@
                                     <input type="number" id="retrasosThresholdFilter" class="filter-input" 
                                            placeholder="Ej: 15" min="0" max="100" step="0.1">
                                 </div>
+                                
+                                <!-- NUEVO: Filtro por diferencias de tiempo -->
+                                <div class="percentage-filter threshold-filter">
+                                    <label>⏱️ Mostrar operativas con diferencia de tiempo ≥</label>
+                                    <input type="number" id="tiempoDiferenciaFilter" class="filter-input" 
+                                           placeholder="Ej: 5" min="0" step="0.1">
+                                    <div class="filter-info">
+                                        <small>Diferencia entre histórico/teórico y Tempus (ida o vuelta)</small>
+                                    </div>
+                                </div>
+                                
                                 <div class="filter-info">
                                     <span id="retrasosFilterInfo"></span>
                                     <span id="accionFilterInfo" style="margin-left: 1rem;"></span>
+                                    <span id="tiempoFilterInfo" style="margin-left: 1rem;"></span>
                                     <span id="currentThresholdInfo" style="margin-left: 1rem;">TR≤60%, TL≤60%, H≥90%</span>
                                 </div>
                             </div>
@@ -1503,6 +1515,7 @@
             llegadaHoraComparison: '',
             llegadaHoraValue: '',
             retrasosThreshold: '',
+            tiempoDiferencia: '', // NUEVO: Filtro por diferencias de tiempo
             accionRecomendada: [] // Cambiado a array para selección múltiple
         };
 
@@ -2335,13 +2348,38 @@
                     return retrasosValue >= threshold;
                 })();
                 
+                // NUEVO: Filtro por diferencias de tiempo
+                const matchesTiempoDiferencia = (() => {
+                    if (activeFilters.tiempoDiferencia === '') return true;
+                    
+                    const threshold = parseFloat(activeFilters.tiempoDiferencia);
+                    if (isNaN(threshold)) return true;
+                    
+                    const parseValue = (value) => {
+                        if (value === '' || value === undefined || value === null) return 0;
+                        return parseFloat(value.toString().replace(',', '.')) || 0;
+                    };
+                    
+                    const pdTeorico = parseValue(result.pdTeorico);
+                    const pdTempus = parseValue(result.pdTempus);
+                    const udTeorico = parseValue(result.udTeorico);
+                    const udTempus = parseValue(result.udTempus);
+                    
+                    // Calcular diferencias absolutas
+                    const diferenciaPD = Math.abs(pdTeorico - pdTempus);
+                    const diferenciaUD = Math.abs(udTeorico - udTempus);
+                    
+                    // Mostrar si alguna diferencia supera el umbral
+                    return diferenciaPD >= threshold || diferenciaUD >= threshold;
+                })();
+                
                 // Cambio: usar array para clasificaciones
                 const matchesAccionRecomendada = activeFilters.accionRecomendada.length === 0 || 
                                                activeFilters.accionRecomendada.includes(result.accion);
                 
                 return matchesColmena && matchesSalida && matchesLlegadaArea && 
                        matchesRetrasoArea && matchesLlegadaHora && matchesRetrasosThreshold && 
-                       matchesAccionRecomendada;
+                       matchesTiempoDiferencia && matchesAccionRecomendada;
             });
             
             updateResultsDisplay();
@@ -2352,6 +2390,7 @@
             const resultsFilterInfo = document.getElementById('resultsFilterInfo');
             const retrasosFilterInfo = document.getElementById('retrasosFilterInfo');
             const accionFilterInfo = document.getElementById('accionFilterInfo');
+            const tiempoFilterInfo = document.getElementById('tiempoFilterInfo'); // NUEVO
             
             const total = analysisResultsByDataset[currentActiveDataset] ? analysisResultsByDataset[currentActiveDataset].length : 0;
             const filtered = filteredResults.length;
@@ -2360,6 +2399,7 @@
                 resultsFilterInfo.textContent = '';
                 retrasosFilterInfo.textContent = '';
                 accionFilterInfo.textContent = '';
+                tiempoFilterInfo.textContent = ''; // NUEVO
                 return;
             }
             
@@ -2374,6 +2414,14 @@
                 retrasosFilterInfo.textContent = '';
             } else {
                 retrasosFilterInfo.textContent = `${filtered} operativas con ≥ ${threshold}% retrasos`;
+            }
+            
+            // NUEVO: Información del filtro de tiempo
+            const tiempoThreshold = activeFilters.tiempoDiferencia;
+            if (tiempoThreshold === '' || isNaN(parseFloat(tiempoThreshold))) {
+                tiempoFilterInfo.textContent = '';
+            } else {
+                tiempoFilterInfo.textContent = `${filtered} operativas con diferencia ≥ ${tiempoThreshold} min`;
             }
             
             // Información de filtros activos
@@ -2412,6 +2460,7 @@
                 llegadaHoraComparison: '',
                 llegadaHoraValue: '',
                 retrasosThreshold: '',
+                tiempoDiferencia: '', // NUEVO
                 accionRecomendada: []
             };
             
@@ -2437,6 +2486,7 @@
             document.getElementById('llegadaHoraComparison').value = '';
             document.getElementById('llegadaHoraValue').value = '';
             document.getElementById('retrasosThresholdFilter').value = '';
+            document.getElementById('tiempoDiferenciaFilter').value = ''; // NUEVO
             
             applyAllFilters();
         }
@@ -2707,8 +2757,8 @@
                 const colmena = extractColmena(operativa);
                 if (!colmena || !operativa) return;
                 
-                // Solo procesar operativas CON clasificación válida para rutas/día
-                if (['Tensionada Retrasos', 'Tensionada Llegada', 'Holgura Tiempo', 'Holgura Tiempo-Volumen'].includes(result.accion)) {
+                // MODIFICADO: Solo procesar operativas de Holgura Tiempo-Volumen para rutas/día
+                if (result.accion === 'Holgura Tiempo-Volumen') {
                     const rutasDia = parseFloat((result.rutasDia || '0').toString().replace(',', '.')) || 0;
                     
                     if (rutasDia > 0) {
@@ -3284,6 +3334,9 @@
                 applyAllFilters();
             } else if (e.target.id === 'retrasosThresholdFilter') {
                 activeFilters.retrasosThreshold = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'tiempoDiferenciaFilter') { // NUEVO
+                activeFilters.tiempoDiferencia = e.target.value;
                 applyAllFilters();
             }
         });
