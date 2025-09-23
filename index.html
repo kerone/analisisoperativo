@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-      <!-- Favicon para navegadores -->
+          <!-- Favicon para navegadores -->
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icon.png">
 
@@ -2828,14 +2828,7 @@
                     <td>${formatValue(result.rutasDia)}</td>
                     <td>${formatValue(result.dias)}</td>
                     <td>${formatValue(result.colPorRuta)}</td>
-                    <td>
-                        <div class="progress-cell">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${retrasosValue}%; background: ${getProgressColor(100 - retrasosValue)};"></div>
-                            </div>
-                            <span class="progress-text">${formatValue(result.porcRetrasos)}%</span>
-                        </div>
-                    </td>
+                    <td>${formatValue(result.porcRetrasos)}%</td>
                     <td>
                         <div class="progress-cell">
                             <div class="progress-bar">
