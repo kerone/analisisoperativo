@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-            <!-- Favicon para navegadores -->
+             <!-- Favicon para navegadores -->
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icon.png">
 
@@ -1348,13 +1348,25 @@
                                            placeholder="Ej: 15" min="0" max="100" step="0.1">
                                 </div>
                                 
-                                <!-- NUEVO: Filtro por diferencias de tiempo -->
+                                <!-- NUEVO: Filtro por diferencias de tiempo mejorado -->
                                 <div class="percentage-filter threshold-filter">
                                     <label>⏱️ Mostrar operativas con diferencia de tiempo ≥</label>
-                                    <input type="number" id="tiempoDiferenciaFilter" class="filter-input" 
-                                           placeholder="Ej: 5" min="0" step="0.1">
+                                    <div class="filter-row">
+                                        <select id="tiempoDireccionFilter" class="comparison-select" style="flex: 0 0 120px;">
+                                            <option value="any">Cualquier</option>
+                                            <option value="more">Más tiempo</option>
+                                            <option value="less">Menos tiempo</option>
+                                        </select>
+                                        <input type="number" id="tiempoDiferenciaFilter" class="filter-input" 
+                                               placeholder="Ej: 5" min="0" step="0.1">
+                                        <select id="tiempoTipoFilter" class="comparison-select" style="flex: 0 0 80px;">
+                                            <option value="any">Ambos</option>
+                                            <option value="ida">Ida</option>
+                                            <option value="vuelta">Vuelta</option>
+                                        </select>
+                                    </div>
                                     <div class="filter-info">
-                                        <small>Diferencia entre histórico/teórico y Tempus (ida o vuelta)</small>
+                                        <small>Diferencia entre histórico/teórico y Tempus</small>
                                     </div>
                                 </div>
                                 
@@ -1515,7 +1527,9 @@
             llegadaHoraComparison: '',
             llegadaHoraValue: '',
             retrasosThreshold: '',
-            tiempoDiferencia: '', // NUEVO: Filtro por diferencias de tiempo
+            tiempoDiferencia: '', // Filtro por diferencias de tiempo
+            tiempoDireccion: 'any', // NUEVO: Dirección de la diferencia (more/less/any)
+            tiempoTipo: 'any', // NUEVO: Tipo de tiempo (ida/vuelta/any)
             accionRecomendada: [] // Cambiado a array para selección múltiple
         };
 
@@ -2348,7 +2362,7 @@
                     return retrasosValue >= threshold;
                 })();
                 
-                // NUEVO: Filtro por diferencias de tiempo
+                // MODIFICADO: Filtro por diferencias de tiempo mejorado
                 const matchesTiempoDiferencia = (() => {
                     if (activeFilters.tiempoDiferencia === '') return true;
                     
@@ -2365,12 +2379,27 @@
                     const udTeorico = parseValue(result.udTeorico);
                     const udTempus = parseValue(result.udTempus);
                     
-                    // Calcular diferencias absolutas
-                    const diferenciaPD = Math.abs(pdTeorico - pdTempus);
-                    const diferenciaUD = Math.abs(udTeorico - udTempus);
+                    // Calcular diferencias con signo (positivo = más tiempo en Tempus, negativo = menos tiempo en Tempus)
+                    const diferenciaPD = pdTempus - pdTeorico; // Positivo si Tempus > Teórico
+                    const diferenciaUD = udTempus - udTeorico; // Positivo si Tempus > Teórico
                     
-                    // Mostrar si alguna diferencia supera el umbral
-                    return diferenciaPD >= threshold || diferenciaUD >= threshold;
+                    // Función para verificar si cumple los criterios de dirección
+                    const cumpleDireccion = (diferencia) => {
+                        switch (activeFilters.tiempoDireccion) {
+                            case 'more': return diferencia >= threshold; // Más tiempo en Tempus
+                            case 'less': return diferencia <= -threshold; // Menos tiempo en Tempus
+                            case 'any': return Math.abs(diferencia) >= threshold; // Cualquier diferencia
+                            default: return Math.abs(diferencia) >= threshold;
+                        }
+                    };
+                    
+                    // Aplicar filtro según tipo de tiempo
+                    switch (activeFilters.tiempoTipo) {
+                        case 'ida': return cumpleDireccion(diferenciaPD);
+                        case 'vuelta': return cumpleDireccion(diferenciaUD);
+                        case 'any': return cumpleDireccion(diferenciaPD) || cumpleDireccion(diferenciaUD);
+                        default: return cumpleDireccion(diferenciaPD) || cumpleDireccion(diferenciaUD);
+                    }
                 })();
                 
                 // Cambio: usar array para clasificaciones
@@ -2416,12 +2445,24 @@
                 retrasosFilterInfo.textContent = `${filtered} operativas con ≥ ${threshold}% retrasos`;
             }
             
-            // NUEVO: Información del filtro de tiempo
+            // NUEVO: Información del filtro de tiempo mejorado
             const tiempoThreshold = activeFilters.tiempoDiferencia;
             if (tiempoThreshold === '' || isNaN(parseFloat(tiempoThreshold))) {
                 tiempoFilterInfo.textContent = '';
             } else {
-                tiempoFilterInfo.textContent = `${filtered} operativas con diferencia ≥ ${tiempoThreshold} min`;
+                const direccionText = {
+                    'more': 'más tiempo',
+                    'less': 'menos tiempo', 
+                    'any': 'diferencia'
+                }[activeFilters.tiempoDireccion] || 'diferencia';
+                
+                const tipoText = {
+                    'ida': 'en ida',
+                    'vuelta': 'en vuelta',
+                    'any': ''
+                }[activeFilters.tiempoTipo] || '';
+                
+                tiempoFilterInfo.textContent = `${filtered} operativas con ${direccionText} ≥ ${tiempoThreshold} min ${tipoText}`.trim();
             }
             
             // Información de filtros activos
@@ -2460,7 +2501,9 @@
                 llegadaHoraComparison: '',
                 llegadaHoraValue: '',
                 retrasosThreshold: '',
-                tiempoDiferencia: '', // NUEVO
+                tiempoDiferencia: '',
+                tiempoDireccion: 'any', // NUEVO
+                tiempoTipo: 'any', // NUEVO
                 accionRecomendada: []
             };
             
@@ -2486,7 +2529,9 @@
             document.getElementById('llegadaHoraComparison').value = '';
             document.getElementById('llegadaHoraValue').value = '';
             document.getElementById('retrasosThresholdFilter').value = '';
-            document.getElementById('tiempoDiferenciaFilter').value = ''; // NUEVO
+            document.getElementById('tiempoDiferenciaFilter').value = '';
+            document.getElementById('tiempoDireccionFilter').value = 'any'; // NUEVO
+            document.getElementById('tiempoTipoFilter').value = 'any'; // NUEVO
             
             applyAllFilters();
         }
@@ -3315,6 +3360,12 @@
                 applyAllFilters();
             } else if (e.target.id === 'llegadaHoraComparison') {
                 activeFilters.llegadaHoraComparison = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'tiempoDireccionFilter') { // NUEVO
+                activeFilters.tiempoDireccion = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'tiempoTipoFilter') { // NUEVO
+                activeFilters.tiempoTipo = e.target.value;
                 applyAllFilters();
             }
         });
