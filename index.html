@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+              <!-- Favicon para navegadores -->
+<link rel="icon" type="image/png" sizes="32x32" href="icon.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icon.png">
+
+<!-- Para compatibilidad con algunos navegadores antiguos -->
+<link rel="shortcut icon" href="icon.png" type="image/png">
           <!-- Favicon para navegadores -->
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icon.png">
@@ -1027,6 +1033,38 @@
             display: none !important;
         }
 
+        /* NUEVO: Estilos para columna de comentarios */
+        .comments-column {
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        .comments-hidden .comments-column {
+            display: none !important;
+        }
+
+        .comment-input {
+            width: 100%;
+            min-height: 60px;
+            padding: 0.5rem;
+            background: #0f1419;
+            border: 1px solid #374151;
+            border-radius: 0.375rem;
+            color: #e5e7eb;
+            font-size: 0.6875rem;
+            resize: vertical;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .comments-toggle-btn {
+            margin-left: 0.5rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -1412,13 +1450,19 @@
                                     <i class="fas fa-table"></i>
                                     <span id="currentResultsTitle">Resultados del Análisis</span>
                                 </h3>
-                                <button id="downloadBtn" class="btn btn-success">
-                                    <i class="fas fa-download"></i>
-                                    Descargar CSV
-                                </button>
+                                <div>
+                                    <button id="toggleCommentsBtn" class="btn btn-secondary comments-toggle-btn" onclick="toggleCommentsColumn()">
+                                        <i class="fas fa-comment-alt"></i>
+                                        Mostrar Comentarios
+                                    </button>
+                                    <button id="downloadBtn" class="btn btn-success">
+                                        <i class="fas fa-download"></i>
+                                        Descargar CSV
+                                    </button>
+                                </div>
                             </div>
                             <div class="table-container">
-                                <table>
+                                <table id="resultsTable" class="comments-hidden">
                                     <thead>
                                         <tr>
                                             <th>Operativa</th>
@@ -1434,6 +1478,7 @@
                                             <th>Clasificación</th>
                                             <th>Problemas Volumen</th>
                                             <th>Posibles Acciones</th>
+                                            <th class="comments-column">Comentarios</th>
                                         </tr>
                                     </thead>
                                     <tbody id="resultsTableBody">
@@ -1530,6 +1575,8 @@
         let tensionadaLlegadaThreshold = 60;
         let holguraThreshold = 90;
         let sidebarCollapsed = false; // NUEVO: Estado del sidebar
+        let commentsVisible = false; // NUEVO: Estado de visibilidad de comentarios
+        let operativeComments = {}; // NUEVO: Almacén de comentarios por operativa
         
         // Arrays para manejar múltiples datasets
         let datasets = [null, null, null, null];
@@ -1678,6 +1725,52 @@
                     icon.className = 'fas fa-chevron-left';
                     toggleButton.title = 'Plegar menú';
                 }
+            }
+        }
+
+        // NUEVA: Función para toggle de columna de comentarios
+        function toggleCommentsColumn() {
+            const table = document.getElementById('resultsTable');
+            const btn = document.getElementById('toggleCommentsBtn');
+            
+            commentsVisible = !commentsVisible;
+            
+            if (commentsVisible) {
+                table.classList.remove('comments-hidden');
+                btn.innerHTML = '<i class="fas fa-comment-alt"></i> Ocultar Comentarios';
+            } else {
+                table.classList.add('comments-hidden');
+                btn.innerHTML = '<i class="fas fa-comment-alt"></i> Mostrar Comentarios';
+            }
+        }
+
+        // NUEVA: Función para guardar comentario
+        function saveComment(operativa, comment) {
+            operativeComments[operativa] = comment;
+        }
+
+        // NUEVA: Función para obtener comentario
+        function getComment(operativa) {
+            return operativeComments[operativa] || '';
+        }
+
+        // NUEVA: Función para limpiar comentarios al cargar nuevos datos
+        function clearCommentsForDataset(datasetIndex) {
+            // Solo limpiar comentarios de operativas que no están en otros datasets
+            if (analysisResultsByDataset[datasetIndex]) {
+                const operativasToRemove = analysisResultsByDataset[datasetIndex].map(result => result.operativa);
+                operativasToRemove.forEach(operativa => {
+                    // Verificar si la operativa existe en otros datasets
+                    const existsInOtherDatasets = analysisResultsByDataset.some((results, index) => 
+                        index !== datasetIndex && 
+                        results && 
+                        results.some(result => result.operativa === operativa)
+                    );
+                    
+                    if (!existsInOtherDatasets) {
+                        delete operativeComments[operativa];
+                    }
+                });
             }
         }
 
@@ -2019,6 +2112,9 @@
                     selectedOperativesByDataset[datasetIndex] = new Set();
                     analysisResultsByDataset[datasetIndex] = [];
                     availableColmenasByDataset[datasetIndex] = new Set();
+                    
+                    // NUEVO: Limpiar comentarios de operativas que ya no existen
+                    clearCommentsForDataset(datasetIndex);
                     
                     // Actualizar interfaz
                     const statusElement = document.getElementById(`fileName${datasetIndex + 1}`);
@@ -2854,6 +2950,12 @@
                         <span class="status-badge ${result.volumeProblems.hasProblems ? 'status-warning' : 'status-success'}">${result.volumeProblems.message}</span>
                     </td>
                     <td style="font-size: 0.6875rem;">${createRecommendations(result)}</td>
+                    <td class="comments-column">
+                        <textarea class="comment-input" 
+                                  placeholder="Añadir comentario..." 
+                                  onchange="saveComment('${result.operativa.replace(/'/g, "\\'")}', this.value)"
+                                  oninput="saveComment('${result.operativa.replace(/'/g, "\\'")}', this.value)">${getComment(result.operativa)}</textarea>
+                    </td>
                 </tr>
                 `;
             }).join('');
@@ -3664,6 +3766,7 @@
                 'Clasificación': result.accion || '',
                 'Problemas de Volumen': result.volumeProblems ? result.volumeProblems.message : '',
                 'Posibles Acciones': createPlainTextRecommendations(result),
+                'Comentarios': getComment(result.operativa), // NUEVO: Incluir comentarios en descarga
                 'Col Teóricas': formatValue(result.colTeorica),
                 'PD Teórico': formatValue(result.pdTeorico),
                 'UD Teórico': formatValue(result.udTeorico),
