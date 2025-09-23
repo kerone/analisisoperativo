@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-             <!-- Favicon para navegadores -->
+      <!-- Favicon para navegadores -->
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icon.png">
 
@@ -557,7 +557,7 @@
 
         .filters-row {
             display: grid;
-            grid-template-columns: auto auto 1fr auto;
+            grid-template-columns: auto auto auto auto 1fr;
             gap: 0.75rem;
             align-items: center;
             margin-bottom: 0.75rem;
@@ -1274,6 +1274,32 @@
                                 </div>
                                 
                                 <div class="filter-group">
+                                    <label class="filter-label">📍 Área:</label>
+                                    <div class="multi-select-container" id="areaMultiSelect">
+                                        <div class="multi-select-trigger" onclick="toggleMultiSelect('area')">
+                                            <span class="multi-select-text" id="areaSelectedText">Todas</span>
+                                            <span class="multi-select-arrow"><i class="fas fa-chevron-down"></i></span>
+                                        </div>
+                                        <div class="multi-select-dropdown" id="areaDropdown">
+                                            <!-- Options will be populated dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="filter-group">
+                                    <label class="filter-label">🕒 Turno:</label>
+                                    <div class="multi-select-container" id="turnoMultiSelect">
+                                        <div class="multi-select-trigger" onclick="toggleMultiSelect('turno')">
+                                            <span class="multi-select-text" id="turnoSelectedText">Todos</span>
+                                            <span class="multi-select-arrow"><i class="fas fa-chevron-down"></i></span>
+                                        </div>
+                                        <div class="multi-select-dropdown" id="turnoDropdown">
+                                            <!-- Options will be populated dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="filter-group">
                                     <label class="filter-label">🎯 Clasificación:</label>
                                     <div class="multi-select-container" id="clasificacionMultiSelect">
                                         <div class="multi-select-trigger" onclick="toggleMultiSelect('clasificacion')">
@@ -1354,8 +1380,8 @@
                                     <div class="filter-row">
                                         <select id="tiempoDireccionFilter" class="comparison-select" style="flex: 0 0 120px;">
                                             <option value="any">Cualquier</option>
-                                            <option value="more">Más tiempo que Objetivo</option>
-                                            <option value="less">Menos tiempo que Objetivo</option>
+                                            <option value="more">Más tiempo</option>
+                                            <option value="less">Menos tiempo</option>
                                         </select>
                                         <input type="number" id="tiempoDiferenciaFilter" class="filter-input" 
                                                placeholder="Ej: 5" min="0" step="0.1">
@@ -1517,7 +1543,9 @@
         let isSelectionCollapsed = false;
         let filteredResults = [];
         let activeFilters = {
-            colmena: [], // Cambiado a array para selección múltiple
+            colmena: [], // Array para selección múltiple
+            area: [], // NUEVO: Array para áreas
+            turno: [], // NUEVO: Array para turnos
             salidaComparison: '',
             salidaValue: '',
             llegadaAreaComparison: '',
@@ -1528,9 +1556,9 @@
             llegadaHoraValue: '',
             retrasosThreshold: '',
             tiempoDiferencia: '', // Filtro por diferencias de tiempo
-            tiempoDireccion: 'any', // NUEVO: Dirección de la diferencia (more/less/any)
-            tiempoTipo: 'any', // NUEVO: Tipo de tiempo (ida/vuelta/any)
-            accionRecomendada: [] // Cambiado a array para selección múltiple
+            tiempoDireccion: 'any', // Dirección de la diferencia (more/less/any)
+            tiempoTipo: 'any', // Tipo de tiempo (ida/vuelta/any)
+            accionRecomendada: [] // Array para selección múltiple
         };
 
         // NUEVA: Función para inicializar el estado del sidebar al cargar la página
@@ -2049,6 +2077,64 @@
             return match ? match[1] : '';
         }
 
+        // CORREGIDAS: Funciones para extraer área y turno con turnos específicos
+        function extractTurno(operativa) {
+            if (!operativa) return '';
+            
+            const operativaLower = operativa.toLowerCase();
+            const turnos = ['morning', 'bridge', 'afternoon'];
+            
+            for (const turno of turnos) {
+                if (operativaLower.includes(turno)) {
+                    return turno;
+                }
+            }
+            
+            return '';
+        }
+
+        function extractArea(operativa) {
+            if (!operativa) return '';
+            
+            // Extraer colmena (parte inicial)
+            const colmenaMatch = operativa.match(/^([a-zA-Z]{3}\d+)/);
+            if (!colmenaMatch) return '';
+            
+            const colmena = colmenaMatch[1];
+            const turno = extractTurno(operativa);
+            
+            if (!turno) {
+                // Si no hay turno identificado, tomar todo después de la colmena
+                const withoutColmena = operativa.substring(colmena.length);
+                return withoutColmena.startsWith('-') ? withoutColmena.substring(1) : withoutColmena;
+            }
+            
+            // Remover colmena del inicio y turno del final
+            let area = operativa.substring(colmena.length);
+            
+            // Remover guión inicial si existe
+            if (area.startsWith('-')) {
+                area = area.substring(1);
+            }
+            
+            // Remover turno del final (case insensitive)
+            const turnoLower = turno.toLowerCase();
+            const areaLower = area.toLowerCase();
+            
+            if (areaLower.endsWith('-' + turnoLower)) {
+                area = area.substring(0, area.length - turnoLower.length - 1);
+            } else if (areaLower.endsWith(turnoLower)) {
+                area = area.substring(0, area.length - turnoLower.length);
+            }
+            
+            // Remover guión final si existe
+            if (area.endsWith('-')) {
+                area = area.substring(0, area.length - 1);
+            }
+            
+            return area;
+        }
+
         function showOperativeSelection(data, datasetIndex) {
             const operativesCard = document.getElementById('operativesCard');
             
@@ -2182,7 +2268,16 @@
         }
 
         function toggleMultiSelectOption(type, value, checkbox) {
-            const filterKey = type === 'colmena' ? 'colmena' : 'accionRecomendada';
+            let filterKey;
+            if (type === 'colmena') {
+                filterKey = 'colmena';
+            } else if (type === 'area') { // NUEVO
+                filterKey = 'area';
+            } else if (type === 'turno') { // NUEVO  
+                filterKey = 'turno';
+            } else if (type === 'clasificacion') {
+                filterKey = 'accionRecomendada';
+            }
             
             if (checkbox.checked) {
                 if (!activeFilters[filterKey].includes(value)) {
@@ -2197,15 +2292,36 @@
         }
 
         function updateMultiSelectDisplay(type) {
-            const filterKey = type === 'colmena' ? 'colmena' : 'accionRecomendada';
+            let filterKey, defaultText;
+            
+            if (type === 'colmena') {
+                filterKey = 'colmena';
+                defaultText = 'Todas';
+            } else if (type === 'area') { // NUEVO
+                filterKey = 'area';
+                defaultText = 'Todas';
+            } else if (type === 'turno') { // NUEVO
+                filterKey = 'turno'; 
+                defaultText = 'Todos';
+            } else if (type === 'clasificacion') {
+                filterKey = 'accionRecomendada';
+                defaultText = 'Todas';
+            }
+            
             const selectedValues = activeFilters[filterKey];
             const textElement = document.getElementById(`${type}SelectedText`);
             
             if (selectedValues.length === 0) {
-                textElement.textContent = 'Todas';
+                textElement.textContent = defaultText;
                 textElement.parentElement.querySelector('.multi-select-count')?.remove();
             } else if (selectedValues.length === 1) {
-                textElement.textContent = selectedValues[0].toUpperCase();
+                let displayValue = selectedValues[0];
+                if (type === 'colmena') {
+                    displayValue = displayValue.toUpperCase();
+                } else if (type === 'area' || type === 'turno') {
+                    displayValue = displayValue.charAt(0).toUpperCase() + displayValue.slice(1);
+                }
+                textElement.textContent = displayValue;
                 textElement.parentElement.querySelector('.multi-select-count')?.remove();
             } else {
                 textElement.textContent = `${selectedValues.length} seleccionadas`;
@@ -2240,9 +2356,11 @@
             // Usar los resultados del dataset actual para mostrar
             filteredResults = [...results];
             
-            // Reset filters
+            // CORREGIDO: Reset completo de filters al mostrar nuevos resultados
             activeFilters = {
                 colmena: [],
+                area: [],
+                turno: [],
                 salidaComparison: '',
                 salidaValue: '',
                 llegadaAreaComparison: '',
@@ -2252,10 +2370,34 @@
                 llegadaHoraComparison: '',
                 llegadaHoraValue: '',
                 retrasosThreshold: '',
+                tiempoDiferencia: '',
+                tiempoDireccion: 'any',
+                tiempoTipo: 'any',
                 accionRecomendada: []
             };
             
+            // NUEVO: Limpiar valores de los campos de filtro en el DOM
+            document.getElementById('salidaComparison').value = '';
+            document.getElementById('salidaValue').value = '';
+            document.getElementById('llegadaAreaComparison').value = '';
+            document.getElementById('llegadaAreaValue').value = '';
+            document.getElementById('retrasoAreaComparison').value = '';
+            document.getElementById('retrasoAreaValue').value = '';
+            document.getElementById('llegadaHoraComparison').value = '';
+            document.getElementById('llegadaHoraValue').value = '';
+            document.getElementById('retrasosThresholdFilter').value = '';
+            document.getElementById('tiempoDiferenciaFilter').value = '';
+            document.getElementById('tiempoDireccionFilter').value = 'any';
+            document.getElementById('tiempoTipoFilter').value = 'any';
+            
             populateResultsFilters();
+            
+            // NUEVO: Resetear displays de multi-selects después de poblar
+            updateMultiSelectDisplay('colmena');
+            updateMultiSelectDisplay('area');
+            updateMultiSelectDisplay('turno');
+            updateMultiSelectDisplay('clasificacion');
+            
             updateResultsDisplay();
             updateThresholdInfo();
             
@@ -2273,11 +2415,20 @@
             
             // Populate colmena multi-select
             const colmenasInResults = new Set();
+            const areasInResults = new Set(); // NUEVO
+            const turnosInResults = new Set(); // NUEVO
+            
             currentResults.forEach(result => {
                 const colmena = extractColmena(result.operativa);
+                const area = extractArea(result.operativa);
+                const turno = extractTurno(result.operativa);
+                
                 if (colmena) colmenasInResults.add(colmena);
+                if (area) areasInResults.add(area);
+                if (turno) turnosInResults.add(turno);
             });
             
+            // Populate colmena dropdown
             const sortedColmenas = Array.from(colmenasInResults).sort();
             const colmenaDropdown = document.getElementById('colmenaDropdown');
             
@@ -2286,6 +2437,30 @@
                     <input type="checkbox" id="colmena_${colmena}" value="${colmena}" 
                            onchange="toggleMultiSelectOption('colmena', '${colmena}', this)">
                     <label for="colmena_${colmena}" class="multi-select-text">${colmena.toUpperCase()}</label>
+                </div>
+            `).join('');
+
+            // NUEVO: Populate area dropdown
+            const sortedAreas = Array.from(areasInResults).sort();
+            const areaDropdown = document.getElementById('areaDropdown');
+            
+            areaDropdown.innerHTML = sortedAreas.map(area => `
+                <div class="multi-select-option" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="area_${area}" value="${area}" 
+                           onchange="toggleMultiSelectOption('area', '${area}', this)">
+                    <label for="area_${area}" class="multi-select-text">${area.charAt(0).toUpperCase() + area.slice(1)}</label>
+                </div>
+            `).join('');
+
+            // NUEVO: Populate turno dropdown
+            const sortedTurnos = Array.from(turnosInResults).sort();
+            const turnoDropdown = document.getElementById('turnoDropdown');
+            
+            turnoDropdown.innerHTML = sortedTurnos.map(turno => `
+                <div class="multi-select-option" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="turno_${turno}" value="${turno}" 
+                           onchange="toggleMultiSelectOption('turno', '${turno}', this)">
+                    <label for="turno_${turno}" class="multi-select-text">${turno.charAt(0).toUpperCase() + turno.slice(1)}</label>
                 </div>
             `).join('');
 
@@ -2319,8 +2494,13 @@
             
             filteredResults = currentResults.filter(result => {
                 const colmena = extractColmena(result.operativa);
-                // Cambio: usar array para colmenas
+                const area = extractArea(result.operativa); // NUEVO
+                const turno = extractTurno(result.operativa); // NUEVO
+                
+                // Filtros por ubicación y horario
                 const matchesColmena = activeFilters.colmena.length === 0 || activeFilters.colmena.includes(colmena);
+                const matchesArea = activeFilters.area.length === 0 || activeFilters.area.includes(area); // NUEVO
+                const matchesTurno = activeFilters.turno.length === 0 || activeFilters.turno.includes(turno); // NUEVO
                 
                 const evaluatePercentageCriteria = (value, comparison, filterValue) => {
                     if (comparison === '' || filterValue === '') return true;
@@ -2406,7 +2586,7 @@
                 const matchesAccionRecomendada = activeFilters.accionRecomendada.length === 0 || 
                                                activeFilters.accionRecomendada.includes(result.accion);
                 
-                return matchesColmena && matchesSalida && matchesLlegadaArea && 
+                return matchesColmena && matchesArea && matchesTurno && matchesSalida && matchesLlegadaArea && 
                        matchesRetrasoArea && matchesLlegadaHora && matchesRetrasosThreshold && 
                        matchesTiempoDiferencia && matchesAccionRecomendada;
             });
@@ -2471,8 +2651,24 @@
             if (activeFilters.colmena.length > 0) {
                 const colmenaText = activeFilters.colmena.length === 1 
                     ? `Colmena: ${activeFilters.colmena[0].toUpperCase()}`
-                    : `${activeFilters.colmena.length} colmenas seleccionadas`;
+                    : `${activeFilters.colmena.length} colmenas`;
                 filterInfoParts.push(colmenaText);
+            }
+            
+            // NUEVO: Información de filtros de área
+            if (activeFilters.area.length > 0) {
+                const areaText = activeFilters.area.length === 1 
+                    ? `Área: ${activeFilters.area[0].charAt(0).toUpperCase() + activeFilters.area[0].slice(1)}`
+                    : `${activeFilters.area.length} áreas`;
+                filterInfoParts.push(areaText);
+            }
+            
+            // NUEVO: Información de filtros de turno
+            if (activeFilters.turno.length > 0) {
+                const turnoText = activeFilters.turno.length === 1 
+                    ? `Turno: ${activeFilters.turno[0].charAt(0).toUpperCase() + activeFilters.turno[0].slice(1)}`
+                    : `${activeFilters.turno.length} turnos`;
+                filterInfoParts.push(turnoText);
             }
             
             if (activeFilters.accionRecomendada.length > 0) {
@@ -2492,6 +2688,8 @@
         function clearAllFilters() {
             activeFilters = {
                 colmena: [],
+                area: [], // NUEVO
+                turno: [], // NUEVO
                 salidaComparison: '',
                 salidaValue: '',
                 llegadaAreaComparison: '',
@@ -2502,13 +2700,19 @@
                 llegadaHoraValue: '',
                 retrasosThreshold: '',
                 tiempoDiferencia: '',
-                tiempoDireccion: 'any', // NUEVO
-                tiempoTipo: 'any', // NUEVO
+                tiempoDireccion: 'any',
+                tiempoTipo: 'any',
                 accionRecomendada: []
             };
             
             // Limpiar multi-selects
             document.querySelectorAll('#colmenaDropdown input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            document.querySelectorAll('#areaDropdown input[type="checkbox"]').forEach(checkbox => { // NUEVO
+                checkbox.checked = false;
+            });
+            document.querySelectorAll('#turnoDropdown input[type="checkbox"]').forEach(checkbox => { // NUEVO
                 checkbox.checked = false;
             });
             document.querySelectorAll('#clasificacionDropdown input[type="checkbox"]').forEach(checkbox => {
@@ -2517,6 +2721,8 @@
             
             // Actualizar displays
             updateMultiSelectDisplay('colmena');
+            updateMultiSelectDisplay('area'); // NUEVO
+            updateMultiSelectDisplay('turno'); // NUEVO
             updateMultiSelectDisplay('clasificacion');
             
             // Limpiar otros filtros
@@ -2530,8 +2736,8 @@
             document.getElementById('llegadaHoraValue').value = '';
             document.getElementById('retrasosThresholdFilter').value = '';
             document.getElementById('tiempoDiferenciaFilter').value = '';
-            document.getElementById('tiempoDireccionFilter').value = 'any'; // NUEVO
-            document.getElementById('tiempoTipoFilter').value = 'any'; // NUEVO
+            document.getElementById('tiempoDireccionFilter').value = 'any';
+            document.getElementById('tiempoTipoFilter').value = 'any';
             
             applyAllFilters();
         }
