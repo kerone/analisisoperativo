@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-              <!-- Favicon para navegadores -->
-<link rel="icon" type="image/png" sizes="32x32" href="icon.png">
-<link rel="icon" type="image/png" sizes="16x16" href="icon.png">
-
-<!-- Para compatibilidad con algunos navegadores antiguos -->
-<link rel="shortcut icon" href="icon.png" type="image/png">
           <!-- Favicon para navegadores -->
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icon.png">
@@ -1033,7 +1027,7 @@
             display: none !important;
         }
 
-        /* NUEVO: Estilos para columna de comentarios */
+        /* Estilos para columna de comentarios */
         .comments-column {
             min-width: 200px;
             max-width: 300px;
@@ -1412,7 +1406,7 @@
                                            placeholder="Ej: 15" min="0" max="100" step="0.1">
                                 </div>
                                 
-                                <!-- NUEVO: Filtro por diferencias de tiempo mejorado -->
+                                <!-- Filtro por diferencias de tiempo mejorado -->
                                 <div class="percentage-filter threshold-filter">
                                     <label>⏱️ Mostrar operativas con diferencia de tiempo ≥</label>
                                     <div class="filter-row">
@@ -1497,7 +1491,7 @@
                                 <i class="fas fa-chart-pie"></i>
                                 Resumen por Colmena
                             </h2>
-                            <!-- NUEVO: Selector de semanas -->
+                            <!-- Selector de semanas -->
                             <select id="summaryWeekSelector" class="form-control" style="max-width: 200px;" onchange="updateSummaryView()">
                                 <option value="all">Todas las semanas</option>
                             </select>
@@ -1574,9 +1568,9 @@
         let tensionadaRetrasosThreshold = 60;
         let tensionadaLlegadaThreshold = 60;
         let holguraThreshold = 90;
-        let sidebarCollapsed = false; // NUEVO: Estado del sidebar
-        let commentsVisible = false; // NUEVO: Estado de visibilidad de comentarios
-        let operativeComments = {}; // NUEVO: Almacén de comentarios por operativa
+        let sidebarCollapsed = false;
+        let commentsVisible = false;
+        let operativeComments = {};
         
         // Arrays para manejar múltiples datasets
         let datasets = [null, null, null, null];
@@ -1590,9 +1584,9 @@
         let isSelectionCollapsed = false;
         let filteredResults = [];
         let activeFilters = {
-            colmena: [], // Array para selección múltiple
-            area: [], // NUEVO: Array para áreas
-            turno: [], // NUEVO: Array para turnos
+            colmena: [],
+            area: [],
+            turno: [],
             salidaComparison: '',
             salidaValue: '',
             llegadaAreaComparison: '',
@@ -1602,13 +1596,13 @@
             llegadaHoraComparison: '',
             llegadaHoraValue: '',
             retrasosThreshold: '',
-            tiempoDiferencia: '', // Filtro por diferencias de tiempo
-            tiempoDireccion: 'any', // Dirección de la diferencia (more/less/any)
-            tiempoTipo: 'any', // Tipo de tiempo (ida/vuelta/any)
-            accionRecomendada: [] // Array para selección múltiple
+            tiempoDiferencia: '',
+            tiempoDireccion: 'any',
+            tiempoTipo: 'any',
+            accionRecomendada: []
         };
 
-        // NUEVA: Función para inicializar el estado del sidebar al cargar la página
+        // Función para inicializar el estado del sidebar al cargar la página
         function initializeSidebar() {
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.querySelector('.main-content');
@@ -1616,7 +1610,6 @@
             const isMobile = window.innerWidth <= 768;
             
             if (isMobile) {
-                // En móvil: sidebar oculto por defecto
                 sidebar.classList.remove('collapsed');
                 mainContent.classList.remove('sidebar-collapsed');
                 
@@ -1624,7 +1617,6 @@
                 icon.className = 'fas fa-chevron-right';
                 toggleButton.title = 'Desplegar menú';
             } else {
-                // En desktop: sidebar visible por defecto
                 sidebar.classList.remove('collapsed');
                 mainContent.classList.remove('sidebar-collapsed');
                 sidebarCollapsed = false;
@@ -1635,7 +1627,7 @@
             }
         }
 
-        // NUEVA: Función para toggle del sidebar
+        // Función para toggle del sidebar
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.querySelector('.main-content');
@@ -1643,7 +1635,6 @@
             const isMobile = window.innerWidth <= 768;
             
             if (isMobile) {
-                // En móviles, usar clase mobile-open
                 sidebar.classList.toggle('mobile-open');
                 const icon = toggleButton.querySelector('i');
                 if (sidebar.classList.contains('mobile-open')) {
@@ -1654,12 +1645,10 @@
                     toggleButton.title = 'Desplegar menú';
                 }
             } else {
-                // En desktop, usar collapsed
                 sidebarCollapsed = !sidebarCollapsed;
                 sidebar.classList.toggle('collapsed', sidebarCollapsed);
                 mainContent.classList.toggle('sidebar-collapsed', sidebarCollapsed);
                 
-                // Cambiar icono del botón según estado
                 const icon = toggleButton.querySelector('i');
                 if (sidebarCollapsed) {
                     icon.className = 'fas fa-chevron-right';
@@ -1671,7 +1660,7 @@
             }
         }
 
-        // NUEVA: Función para cerrar sidebar en móvil al hacer clic fuera
+        // Función para cerrar sidebar en móvil al hacer clic fuera
         function handleOutsideClick(event) {
             const sidebar = document.querySelector('.sidebar');
             const toggleButton = document.getElementById('sidebarToggle');
@@ -1687,7 +1676,7 @@
             }
         }
 
-        // NUEVA: Función para manejar redimensionado de ventana
+        // Función para manejar redimensionado de ventana
         function handleResize() {
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.querySelector('.main-content');
@@ -1695,11 +1684,9 @@
             const isMobile = window.innerWidth <= 768;
             
             if (isMobile) {
-                // Limpiar clases de desktop
                 sidebar.classList.remove('collapsed');
                 mainContent.classList.remove('sidebar-collapsed');
                 
-                // Configurar icono para móvil
                 const icon = toggleButton.querySelector('i');
                 if (sidebar.classList.contains('mobile-open')) {
                     icon.className = 'fas fa-times';
@@ -1709,14 +1696,11 @@
                     toggleButton.title = 'Desplegar menú';
                 }
             } else {
-                // Limpiar clases de móvil
                 sidebar.classList.remove('mobile-open');
                 
-                // Restaurar estado de desktop
                 sidebar.classList.toggle('collapsed', sidebarCollapsed);
                 mainContent.classList.toggle('sidebar-collapsed', sidebarCollapsed);
                 
-                // Configurar icono para desktop
                 const icon = toggleButton.querySelector('i');
                 if (sidebarCollapsed) {
                     icon.className = 'fas fa-chevron-right';
@@ -1728,7 +1712,7 @@
             }
         }
 
-        // NUEVA: Función para toggle de columna de comentarios
+        // Función para toggle de columna de comentarios
         function toggleCommentsColumn() {
             const table = document.getElementById('resultsTable');
             const btn = document.getElementById('toggleCommentsBtn');
@@ -1744,23 +1728,21 @@
             }
         }
 
-        // NUEVA: Función para guardar comentario
+        // Función para guardar comentario
         function saveComment(operativa, comment) {
             operativeComments[operativa] = comment;
         }
 
-        // NUEVA: Función para obtener comentario
+        // Función para obtener comentario
         function getComment(operativa) {
             return operativeComments[operativa] || '';
         }
 
-        // NUEVA: Función para limpiar comentarios al cargar nuevos datos
+        // Función para limpiar comentarios al cargar nuevos datos
         function clearCommentsForDataset(datasetIndex) {
-            // Solo limpiar comentarios de operativas que no están en otros datasets
             if (analysisResultsByDataset[datasetIndex]) {
                 const operativasToRemove = analysisResultsByDataset[datasetIndex].map(result => result.operativa);
                 operativasToRemove.forEach(operativa => {
-                    // Verificar si la operativa existe en otros datasets
                     const existsInOtherDatasets = analysisResultsByDataset.some((results, index) => 
                         index !== datasetIndex && 
                         results && 
@@ -1915,16 +1897,24 @@
                 return parseFloat(value.toString().replace(',', '.')) || 0;
             };
             
+            // Extraer parámetros para la URL de Metabase
+            const colmena = extractColmena(result.operativa);
+            const turno = extractTurno(result.operativa);
+            const area = extractArea(result.operativa);
+            
+            // Construir URL de Metabase con parámetros específicos
+            const metabaseUrl = `https://metabase.prod.monline/question/29582-productividad-teorica-diaria?colmena=${colmena}&shift=${turno}&area=${encodeURIComponent(area.toLowerCase())}`;
+            
             const colTeorica = parseValue(result.colTeorica);
             const colTempus = parseValue(result.colTempus);
             const diferenciaCol = colTeorica - colTempus;
             
-            // NUEVO FORMATO: **Título**: Histórico: X, Tempus: Y (Recomendación)
+            // Formato con enlace en Productividad
             if (diferenciaCol !== 0) {
                 const accionProductividad = diferenciaCol < 0 ? "Reducir productividad" : "Aumentar productividad";
-                recommendations.push(`<strong>Productividad</strong>: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (${accionProductividad}: ${Math.abs(diferenciaCol).toFixed(2)})`);
+                recommendations.push(`<strong><a href="${metabaseUrl}" target="_blank" style="color: #3b82f6; text-decoration: none;">Productividad</a></strong>: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (${accionProductividad}: ${Math.abs(diferenciaCol).toFixed(2)})`);
             } else {
-                recommendations.push(`<strong>Productividad</strong>: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (Equilibrada)`);
+                recommendations.push(`<strong><a href="${metabaseUrl}" target="_blank" style="color: #3b82f6; text-decoration: none;">Productividad</a></strong>: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (Equilibrada)`);
             }
             
             const pdTeorico = parseValue(result.pdTeorico);
@@ -1965,7 +1955,6 @@
             const colTempus = parseValue(result.colTempus);
             const diferenciaCol = colTeorica - colTempus;
             
-            // Productividad
             if (diferenciaCol !== 0) {
                 const accionProductividad = diferenciaCol < 0 ? "Reducir productividad" : "Aumentar productividad";
                 recommendations.push(`Productividad: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (${accionProductividad}: ${Math.abs(diferenciaCol).toFixed(2)})`);
@@ -1977,7 +1966,6 @@
             const pdTempus = parseValue(result.pdTempus);
             const ajusteTiemposIda = pdTeorico - pdTempus;
             
-            // Tiempo de ida
             if (ajusteTiemposIda !== 0) {
                 const accionTiempoIda = ajusteTiemposIda < 0 ? "Reducir tiempo ida" : "Aumentar tiempo ida";
                 recommendations.push(`Tiempo de ida: Histórico: ${pdTeorico.toFixed(2)}, Tempus: ${pdTempus.toFixed(2)} (${accionTiempoIda}: ${Math.abs(ajusteTiemposIda).toFixed(2)})`);
@@ -1989,7 +1977,6 @@
             const udTempus = parseValue(result.udTempus);
             const ajusteTiemposVuelta = udTeorico - udTempus;
             
-            // Tiempo de vuelta
             if (ajusteTiemposVuelta !== 0) {
                 const accionTiempoVuelta = ajusteTiemposVuelta < 0 ? "Reducir tiempo vuelta" : "Aumentar tiempo vuelta";
                 recommendations.push(`Tiempo de vuelta: Histórico: ${udTeorico.toFixed(2)}, Tempus: ${udTempus.toFixed(2)} (${accionTiempoVuelta}: ${Math.abs(ajusteTiemposVuelta).toFixed(2)})`);
@@ -2013,14 +2000,12 @@
         function getPercentageBadgeClass(percentage, isRetrasoEnArea = false) {
             const value = parseFloat(percentage) || 0;
             
-            {
-                if (value >= 85) return 'percentage-excellent';
-                if (value >= 70) return 'percentage-very-good';
-                if (value >= 55) return 'percentage-good';
-                if (value >= 40) return 'percentage-fair';
-                if (value >= 25) return 'percentage-poor';
-                return 'percentage-very-poor';
-            }
+            if (value >= 85) return 'percentage-excellent';
+            if (value >= 70) return 'percentage-very-good';
+            if (value >= 55) return 'percentage-good';
+            if (value >= 40) return 'percentage-fair';
+            if (value >= 25) return 'percentage-poor';
+            return 'percentage-very-poor';
         }
 
         function getStatusClass(action) {
@@ -2035,7 +2020,6 @@
             console.log(`Cambiando a dataset ${index}`);
             currentActiveDataset = index;
             
-            // Actualizar pestañas activas
             document.querySelectorAll('.dataset-tab').forEach((tab, i) => {
                 if (i === index) {
                     tab.classList.add('active');
@@ -2044,14 +2028,10 @@
                 }
             });
             
-            // Mostrar datos del dataset activo
             if (datasets[index]) {
                 showOperativeSelection(datasets[index], index);
-                
-                // CORREGIDO: Actualizar estado del botón "Seleccionar Todas"
                 updateSelectAllButton(index);
                 
-                // Si hay análisis para este dataset, mostrar resultados
                 if (analysisResultsByDataset[index] && analysisResultsByDataset[index].length > 0) {
                     displayResults(analysisResultsByDataset[index], index);
                 } else {
@@ -2063,7 +2043,6 @@
             }
         }
         
-        // NUEVA: Función para actualizar el estado del botón "Seleccionar Todas"
         function updateSelectAllButton(datasetIndex) {
             const currentData = datasets[datasetIndex];
             const selectAllBtn = document.getElementById('selectAllBtn');
@@ -2108,23 +2087,18 @@
 
                     datasets[datasetIndex] = results.data;
                     datasetNames[datasetIndex] = fileName;
-                    // CORREGIDO: Limpiar completamente las selecciones del dataset
                     selectedOperativesByDataset[datasetIndex] = new Set();
                     analysisResultsByDataset[datasetIndex] = [];
                     availableColmenasByDataset[datasetIndex] = new Set();
                     
-                    // NUEVO: Limpiar comentarios de operativas que ya no existen
                     clearCommentsForDataset(datasetIndex);
                     
-                    // Actualizar interfaz
                     const statusElement = document.getElementById(`fileName${datasetIndex + 1}`);
                     statusElement.textContent = `✓ ${fileName}`;
                     statusElement.className = 'file-status success';
                     
-                    // Mostrar tabs y actualizar dataset activo si es necesario
                     showDatasetTabs();
                     
-                    // CORREGIDO: Siempre cambiar al archivo recién subido
                     currentActiveDataset = datasetIndex;
                     switchDataset(datasetIndex);
                     
@@ -2146,7 +2120,6 @@
                     
                     if (data) {
                         tab.classList.remove('hidden');
-                        // Indicar si hay resultados para este dataset
                         if (analysisResultsByDataset[index] && analysisResultsByDataset[index].length > 0) {
                             tab.classList.add('has-results');
                         } else {
@@ -2173,7 +2146,6 @@
             return match ? match[1] : '';
         }
 
-        // CORREGIDAS: Funciones para extraer área y turno con turnos específicos
         function extractTurno(operativa) {
             if (!operativa) return '';
             
@@ -2192,7 +2164,6 @@
         function extractArea(operativa) {
             if (!operativa) return '';
             
-            // Extraer colmena (parte inicial)
             const colmenaMatch = operativa.match(/^([a-zA-Z]{3}\d+)/);
             if (!colmenaMatch) return '';
             
@@ -2200,20 +2171,16 @@
             const turno = extractTurno(operativa);
             
             if (!turno) {
-                // Si no hay turno identificado, tomar todo después de la colmena
                 const withoutColmena = operativa.substring(colmena.length);
                 return withoutColmena.startsWith('-') ? withoutColmena.substring(1) : withoutColmena;
             }
             
-            // Remover colmena del inicio y turno del final
             let area = operativa.substring(colmena.length);
             
-            // Remover guión inicial si existe
             if (area.startsWith('-')) {
                 area = area.substring(1);
             }
             
-            // Remover turno del final (case insensitive)
             const turnoLower = turno.toLowerCase();
             const areaLower = area.toLowerCase();
             
@@ -2223,7 +2190,6 @@
                 area = area.substring(0, area.length - turnoLower.length);
             }
             
-            // Remover guión final si existe
             if (area.endsWith('-')) {
                 area = area.substring(0, area.length - 1);
             }
@@ -2268,7 +2234,6 @@
             operativesGrid.innerHTML = filteredOperativesByDataset[datasetIndex].map((row) => {
                 const colmena = extractColmena(row.operativa);
                 const isSelected = selectedOperativesByDataset[datasetIndex].has(row.originalIndex);
-                // CORREGIDO: Usar IDs únicos por dataset para evitar conflictos
                 const uniqueId = `op_${datasetIndex}_${row.originalIndex}`;
                 
                 return `
@@ -2302,7 +2267,6 @@
         }
 
         function toggleOperative(index, datasetIndex = null) {
-            // CORREGIDO: Usar el dataset correcto
             const targetDataset = datasetIndex !== null ? datasetIndex : currentActiveDataset;
             const uniqueId = `op_${targetDataset}_${index}`;
             const checkbox = document.getElementById(uniqueId);
@@ -2350,7 +2314,6 @@
             const dropdown = document.getElementById(`${type}Dropdown`);
             const trigger = dropdown.previousElementSibling;
             
-            // Cerrar otros dropdowns abiertos
             document.querySelectorAll('.multi-select-dropdown.show').forEach(dd => {
                 if (dd !== dropdown) {
                     dd.classList.remove('show');
@@ -2358,7 +2321,6 @@
                 }
             });
             
-            // Toggle el dropdown actual
             dropdown.classList.toggle('show');
             trigger.classList.toggle('active');
         }
@@ -2367,9 +2329,9 @@
             let filterKey;
             if (type === 'colmena') {
                 filterKey = 'colmena';
-            } else if (type === 'area') { // NUEVO
+            } else if (type === 'area') {
                 filterKey = 'area';
-            } else if (type === 'turno') { // NUEVO  
+            } else if (type === 'turno') { 
                 filterKey = 'turno';
             } else if (type === 'clasificacion') {
                 filterKey = 'accionRecomendada';
@@ -2393,10 +2355,10 @@
             if (type === 'colmena') {
                 filterKey = 'colmena';
                 defaultText = 'Todas';
-            } else if (type === 'area') { // NUEVO
+            } else if (type === 'area') {
                 filterKey = 'area';
                 defaultText = 'Todas';
-            } else if (type === 'turno') { // NUEVO
+            } else if (type === 'turno') {
                 filterKey = 'turno'; 
                 defaultText = 'Todos';
             } else if (type === 'clasificacion') {
@@ -2422,7 +2384,6 @@
             } else {
                 textElement.textContent = `${selectedValues.length} seleccionadas`;
                 
-                // Añadir o actualizar contador
                 let countElement = textElement.parentElement.querySelector('.multi-select-count');
                 if (!countElement) {
                     countElement = document.createElement('span');
@@ -2442,17 +2403,12 @@
                 });
             }
         });
+
         function displayResults(results, datasetIndex) {
-            // Guardar resultados en el dataset correspondiente
             analysisResultsByDataset[datasetIndex] = results;
-            
-            // Actualizar tabs para mostrar que hay resultados
             showDatasetTabs();
-            
-            // Usar los resultados del dataset actual para mostrar
             filteredResults = [...results];
             
-            // CORREGIDO: Reset completo de filters al mostrar nuevos resultados
             activeFilters = {
                 colmena: [],
                 area: [],
@@ -2472,7 +2428,6 @@
                 accionRecomendada: []
             };
             
-            // NUEVO: Limpiar valores de los campos de filtro en el DOM
             document.getElementById('salidaComparison').value = '';
             document.getElementById('salidaValue').value = '';
             document.getElementById('llegadaAreaComparison').value = '';
@@ -2488,7 +2443,6 @@
             
             populateResultsFilters();
             
-            // NUEVO: Resetear displays de multi-selects después de poblar
             updateMultiSelectDisplay('colmena');
             updateMultiSelectDisplay('area');
             updateMultiSelectDisplay('turno');
@@ -2497,7 +2451,6 @@
             updateResultsDisplay();
             updateThresholdInfo();
             
-            // Actualizar título de resultados
             const resultsTitle = document.getElementById('currentResultsTitle');
             resultsTitle.textContent = `Resultados - ${datasetNames[datasetIndex] || `Archivo ${datasetIndex + 1}`}`;
             
@@ -2509,10 +2462,9 @@
             
             if (currentResults.length === 0) return;
             
-            // Populate colmena multi-select
             const colmenasInResults = new Set();
-            const areasInResults = new Set(); // NUEVO
-            const turnosInResults = new Set(); // NUEVO
+            const areasInResults = new Set();
+            const turnosInResults = new Set();
             
             currentResults.forEach(result => {
                 const colmena = extractColmena(result.operativa);
@@ -2524,7 +2476,6 @@
                 if (turno) turnosInResults.add(turno);
             });
             
-            // Populate colmena dropdown
             const sortedColmenas = Array.from(colmenasInResults).sort();
             const colmenaDropdown = document.getElementById('colmenaDropdown');
             
@@ -2536,7 +2487,6 @@
                 </div>
             `).join('');
 
-            // NUEVO: Populate area dropdown
             const sortedAreas = Array.from(areasInResults).sort();
             const areaDropdown = document.getElementById('areaDropdown');
             
@@ -2548,7 +2498,6 @@
                 </div>
             `).join('');
 
-            // NUEVO: Populate turno dropdown
             const sortedTurnos = Array.from(turnosInResults).sort();
             const turnoDropdown = document.getElementById('turnoDropdown');
             
@@ -2560,7 +2509,6 @@
                 </div>
             `).join('');
 
-            // Populate clasificacion multi-select
             const accionesInResults = new Set();
             currentResults.forEach(result => {
                 if (result.accion) accionesInResults.add(result.accion);
@@ -2590,13 +2538,12 @@
             
             filteredResults = currentResults.filter(result => {
                 const colmena = extractColmena(result.operativa);
-                const area = extractArea(result.operativa); // NUEVO
-                const turno = extractTurno(result.operativa); // NUEVO
+                const area = extractArea(result.operativa);
+                const turno = extractTurno(result.operativa);
                 
-                // Filtros por ubicación y horario
                 const matchesColmena = activeFilters.colmena.length === 0 || activeFilters.colmena.includes(colmena);
-                const matchesArea = activeFilters.area.length === 0 || activeFilters.area.includes(area); // NUEVO
-                const matchesTurno = activeFilters.turno.length === 0 || activeFilters.turno.includes(turno); // NUEVO
+                const matchesArea = activeFilters.area.length === 0 || activeFilters.area.includes(area);
+                const matchesTurno = activeFilters.turno.length === 0 || activeFilters.turno.includes(turno);
                 
                 const evaluatePercentageCriteria = (value, comparison, filterValue) => {
                     if (comparison === '' || filterValue === '') return true;
@@ -2638,7 +2585,6 @@
                     return retrasosValue >= threshold;
                 })();
                 
-                // MODIFICADO: Filtro por diferencias de tiempo mejorado
                 const matchesTiempoDiferencia = (() => {
                     if (activeFilters.tiempoDiferencia === '') return true;
                     
@@ -2655,21 +2601,18 @@
                     const udTeorico = parseValue(result.udTeorico);
                     const udTempus = parseValue(result.udTempus);
                     
-                    // Calcular diferencias con signo (positivo = más tiempo en Tempus, negativo = menos tiempo en Tempus)
-                    const diferenciaPD = pdTempus - pdTeorico; // Positivo si Tempus > Teórico
-                    const diferenciaUD = udTempus - udTeorico; // Positivo si Tempus > Teórico
+                    const diferenciaPD = pdTempus - pdTeorico;
+                    const diferenciaUD = udTempus - udTeorico;
                     
-                    // Función para verificar si cumple los criterios de dirección
                     const cumpleDireccion = (diferencia) => {
                         switch (activeFilters.tiempoDireccion) {
-                            case 'more': return diferencia >= threshold; // Más tiempo en Tempus
-                            case 'less': return diferencia <= -threshold; // Menos tiempo en Tempus
-                            case 'any': return Math.abs(diferencia) >= threshold; // Cualquier diferencia
+                            case 'more': return diferencia >= threshold;
+                            case 'less': return diferencia <= -threshold;
+                            case 'any': return Math.abs(diferencia) >= threshold;
                             default: return Math.abs(diferencia) >= threshold;
                         }
                     };
                     
-                    // Aplicar filtro según tipo de tiempo
                     switch (activeFilters.tiempoTipo) {
                         case 'ida': return cumpleDireccion(diferenciaPD);
                         case 'vuelta': return cumpleDireccion(diferenciaUD);
@@ -2678,7 +2621,6 @@
                     }
                 })();
                 
-                // Cambio: usar array para clasificaciones
                 const matchesAccionRecomendada = activeFilters.accionRecomendada.length === 0 || 
                                                activeFilters.accionRecomendada.includes(result.accion);
                 
@@ -2695,7 +2637,7 @@
             const resultsFilterInfo = document.getElementById('resultsFilterInfo');
             const retrasosFilterInfo = document.getElementById('retrasosFilterInfo');
             const accionFilterInfo = document.getElementById('accionFilterInfo');
-            const tiempoFilterInfo = document.getElementById('tiempoFilterInfo'); // NUEVO
+            const tiempoFilterInfo = document.getElementById('tiempoFilterInfo');
             
             const total = analysisResultsByDataset[currentActiveDataset] ? analysisResultsByDataset[currentActiveDataset].length : 0;
             const filtered = filteredResults.length;
@@ -2704,7 +2646,7 @@
                 resultsFilterInfo.textContent = '';
                 retrasosFilterInfo.textContent = '';
                 accionFilterInfo.textContent = '';
-                tiempoFilterInfo.textContent = ''; // NUEVO
+                tiempoFilterInfo.textContent = '';
                 return;
             }
             
@@ -2721,7 +2663,6 @@
                 retrasosFilterInfo.textContent = `${filtered} operativas con ≥ ${threshold}% retrasos`;
             }
             
-            // NUEVO: Información del filtro de tiempo mejorado
             const tiempoThreshold = activeFilters.tiempoDiferencia;
             if (tiempoThreshold === '' || isNaN(parseFloat(tiempoThreshold))) {
                 tiempoFilterInfo.textContent = '';
@@ -2741,7 +2682,6 @@
                 tiempoFilterInfo.textContent = `${filtered} operativas con ${direccionText} ≥ ${tiempoThreshold} min ${tipoText}`.trim();
             }
             
-            // Información de filtros activos
             let filterInfoParts = [];
             
             if (activeFilters.colmena.length > 0) {
@@ -2751,7 +2691,6 @@
                 filterInfoParts.push(colmenaText);
             }
             
-            // NUEVO: Información de filtros de área
             if (activeFilters.area.length > 0) {
                 const areaText = activeFilters.area.length === 1 
                     ? `Área: ${activeFilters.area[0].charAt(0).toUpperCase() + activeFilters.area[0].slice(1)}`
@@ -2759,7 +2698,6 @@
                 filterInfoParts.push(areaText);
             }
             
-            // NUEVO: Información de filtros de turno
             if (activeFilters.turno.length > 0) {
                 const turnoText = activeFilters.turno.length === 1 
                     ? `Turno: ${activeFilters.turno[0].charAt(0).toUpperCase() + activeFilters.turno[0].slice(1)}`
@@ -2784,8 +2722,8 @@
         function clearAllFilters() {
             activeFilters = {
                 colmena: [],
-                area: [], // NUEVO
-                turno: [], // NUEVO
+                area: [],
+                turno: [],
                 salidaComparison: '',
                 salidaValue: '',
                 llegadaAreaComparison: '',
@@ -2801,27 +2739,24 @@
                 accionRecomendada: []
             };
             
-            // Limpiar multi-selects
             document.querySelectorAll('#colmenaDropdown input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = false;
             });
-            document.querySelectorAll('#areaDropdown input[type="checkbox"]').forEach(checkbox => { // NUEVO
+            document.querySelectorAll('#areaDropdown input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = false;
             });
-            document.querySelectorAll('#turnoDropdown input[type="checkbox"]').forEach(checkbox => { // NUEVO
+            document.querySelectorAll('#turnoDropdown input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = false;
             });
             document.querySelectorAll('#clasificacionDropdown input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = false;
             });
             
-            // Actualizar displays
             updateMultiSelectDisplay('colmena');
-            updateMultiSelectDisplay('area'); // NUEVO
-            updateMultiSelectDisplay('turno'); // NUEVO
+            updateMultiSelectDisplay('area');
+            updateMultiSelectDisplay('turno');
             updateMultiSelectDisplay('clasificacion');
             
-            // Limpiar otros filtros
             document.getElementById('salidaComparison').value = '';
             document.getElementById('salidaValue').value = '';
             document.getElementById('llegadaAreaComparison').value = '';
@@ -2848,7 +2783,6 @@
         function updateResultsDisplay() {
             const total = filteredResults.length;
             
-            // Update stats
             const stats = {
                 total: total,
                 tensionadaRetrasos: 0,
@@ -2902,7 +2836,6 @@
                 statsGrid.innerHTML = '<div style="text-align: center; color: #6b7280;">No hay operativas para mostrar</div>';
             }
 
-            // Update table
             const tbody = document.getElementById('resultsTableBody');
             tbody.innerHTML = filteredResults.map(result => {
                 const salidaValue = parseFloat(formatValue(result.porcSalidaEnHora)) || 0;
@@ -2912,19 +2845,30 @@
                 const retrasosValue = parseFloat(formatValue(result.porcRetrasos)) || 0;
                 const sinRetrasoValue = parseFloat(formatValue(result.porcSinRetraso)) || 0;
                 
-                // NUEVO: Preparar datos para el tooltip de volumen
                 const colTempus = formatValue(result.colTempus) || '0';
                 const colTeorica = formatValue(result.colTeorica) || '0'; 
                 const colVolumen = formatValue(result.colVolumen) || '0';
                 const tooltipData = `Tempus: ${colTempus}|Teórico: ${colTeorica}|Volumen: ${colVolumen}`;
                 
+                // Construir URLs de Metabase con parámetros específicos
+                const colmena = extractColmena(result.operativa);
+                const turno = extractTurno(result.operativa);
+                const area = extractArea(result.operativa);
+                
+                // URL para seguimiento de retrasos (respeta mayúsculas/minúsculas)
+                const retrasosUrl = `https://metabase.prod.monline/question/28532-seguimiento-retrasos-por-tramo-u7d?area=${encodeURIComponent(area)}&hive_code=${colmena}&shift=${turno}`;
+                
+                // URL para simulación de rutas (fecha de hoy y hive_code)
+                const fechaHoy = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+                const simulacionUrl = `https://metabase.prod.monline/question/21898-new-slot-machine-routes-simulation-plan?configuration_id=&area_name=&shift=&route_tpe=&Fecha=${fechaHoy}&hive_code=${colmena}`;
+                
                 return `
                 <tr>
-                    <td><strong>${result.operativa}</strong></td>
+                    <td><strong><a href="${simulacionUrl}" target="_blank" style="color: #f9fafb; text-decoration: none;">${result.operativa}</a></strong></td>
                     <td>${formatValue(result.rutasDia)}</td>
                     <td>${formatValue(result.dias)}</td>
                     <td>${formatValue(result.colPorRuta)}</td>
-                    <td>${formatValue(result.porcRetrasos)}%</td>
+                    <td><a href="${retrasosUrl}" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 600;">${formatValue(result.porcRetrasos)}%</a></td>
                     <td>
                         <div class="progress-cell">
                             <div class="progress-bar">
@@ -2960,13 +2904,11 @@
                 `;
             }).join('');
             
-            // NUEVO: Añadir event listeners para tooltips de volumen
             addVolumeTooltipListeners();
         }
 
         // Summary functions
         function showSummaryTab() {
-            // Verificar si hay análisis en cualquier dataset
             let hasResults = false;
             for (let i = 0; i < analysisResultsByDataset.length; i++) {
                 if (analysisResultsByDataset[i] && analysisResultsByDataset[i].length > 0) {
@@ -2981,24 +2923,18 @@
                 return;
             }
 
-            // NUEVO: Poblar selector con archivos analizados
             populateWeekSelector();
-            
-            // Generar resumen con la selección actual
             updateSummaryView();
             
             document.getElementById('summaryContent').classList.remove('hidden');
             document.getElementById('noSummaryData').style.display = 'none';
         }
 
-        // NUEVA: Función para poblar el selector de semanas
         function populateWeekSelector() {
             const selector = document.getElementById('summaryWeekSelector');
             
-            // Limpiar opciones existentes excepto "Todas las semanas"
             selector.innerHTML = '<option value="all">Todas las semanas</option>';
             
-            // Añadir cada archivo analizado
             datasets.forEach((data, index) => {
                 if (data && analysisResultsByDataset[index] && analysisResultsByDataset[index].length > 0) {
                     const option = document.createElement('option');
@@ -3009,14 +2945,12 @@
             });
         }
 
-        // CORRECCIÓN: Agrupar por colmena y clasificación directamente
         function updateSummaryView() {
             const selector = document.getElementById('summaryWeekSelector');
             const selectedValue = selector.value;
             
             let allSummaryData = [];
             
-            // Consolidar datos según selección
             if (selectedValue === 'all') {
                 datasets.forEach((data, index) => {
                     if (data && analysisResultsByDataset[index] && analysisResultsByDataset[index].length > 0) {
@@ -3045,7 +2979,6 @@
                 return;
             }
 
-            // Funciones auxiliares para consolidar tooltips
             function addToConsolidatedTooltip(tooltipMap, operativa, datasetName, isConsolidatedView) {
                 if (!tooltipMap.has(operativa)) {
                     tooltipMap.set(operativa, new Set());
@@ -3068,12 +3001,10 @@
                 return result.sort();
             }
 
-            // NUEVO ENFOQUE: Agrupar por colmena y clasificación usando Sets
             const colmenaGroups = {};
             const operativesByColmenaAndAction = {};
-            const rutasDiaByOperativa = {}; // NUEVO: Trackear rutas/día por operativa
+            const rutasDiaByOperativa = {};
             
-            // Crear estructura inicial para cada colmena encontrada
             const allColmenas = new Set();
             allSummaryData.forEach(result => {
                 const colmena = extractColmena(result.operativa);
@@ -3097,13 +3028,11 @@
                 };
             });
             
-            // PASO 1: Recopilar rutas/día por operativa (puede aparecer en múltiples semanas)
             allSummaryData.forEach(result => {
                 const operativa = result.operativa;
                 const colmena = extractColmena(operativa);
                 if (!colmena || !operativa) return;
                 
-                // MODIFICADO: Solo procesar operativas de Holgura Tiempo-Volumen para rutas/día
                 if (result.accion === 'Holgura Tiempo-Volumen') {
                     const rutasDia = parseFloat((result.rutasDia || '0').toString().replace(',', '.')) || 0;
                     
@@ -3119,8 +3048,6 @@
                 }
             });
             
-            // PASO 2: Llenar los Sets con operativas únicas por clasificación
-            // NUEVO: Estructura para consolidar tooltips sin duplicados
             const consolidatedTooltips = {};
             allColmenas.forEach(colmena => {
                 consolidatedTooltips[colmena] = {
@@ -3138,13 +3065,10 @@
                 
                 const group = colmenaGroups[colmena];
                 
-                // Agregar a set total de operativas de la colmena
                 group.todasOperativas.add(operativa);
                 
-                // NUEVO: Consolidar tooltips por operativa única
                 const datasetName = result.datasetName || '';
                 
-                // Solo clasificaciones válidas (Sin Clasificar ya está excluido)
                 switch(result.accion) {
                     case 'Tensionada Retrasos':
                         group.tensionadaRetrasos.add(operativa);
@@ -3165,7 +3089,6 @@
                 }
             });
             
-            // Convertir Maps consolidados a arrays para tooltips
             allColmenas.forEach(colmena => {
                 operativesByColmenaAndAction[colmena] = {
                     tensionadaRetrasos: mapToTooltipArray(consolidatedTooltips[colmena].tensionadaRetrasos, selectedValue),
@@ -3175,27 +3098,21 @@
                 };
             });
             
-            // PASO 3: Calcular suma de rutas/día por colmena
             const rutasDiaTotalByColmena = {};
             allColmenas.forEach(colmena => {
                 rutasDiaTotalByColmena[colmena] = 0;
             });
             
-            // Para cada operativa única, calcular su valor final de rutas/día
             Object.keys(rutasDiaByOperativa).forEach(operativa => {
                 const data = rutasDiaByOperativa[operativa];
                 const colmena = data.colmena;
                 
-                // Si la operativa aparece en múltiples semanas, promediar
-                // Si solo aparece en una semana, usar ese valor
                 const valorFinal = data.valores.length > 0 ? 
                     data.valores.reduce((sum, val) => sum + val, 0) / data.valores.length : 0;
                 
-                // SUMAR (no promediar) al total de la colmena
                 rutasDiaTotalByColmena[colmena] += valorFinal;
             });
             
-            // Convertir Sets a números para la tabla
             const finalColmenaGroups = {};
             Object.keys(colmenaGroups).forEach(colmena => {
                 const group = colmenaGroups[colmena];
@@ -3212,7 +3129,6 @@
             createSummaryTable(finalColmenaGroups, operativesByColmenaAndAction, selectedValue);
         }
 
-        // Actualizar createSummaryTable para trabajar con la nueva estructura
         function createSummaryTable(colmenaGroups, operativesByColmenaAndAction, selectedView = 'all') {
             const colmenas = Object.keys(colmenaGroups).sort();
             
@@ -3239,7 +3155,6 @@
                 const displayValue = content === 0 ? '--' : content;
                 
                 if (operativas && operativas.length > 0) {
-                    // Remover duplicados manteniendo orden
                     const uniqueOperativas = [...new Set(operativas)];
                     const operativasText = uniqueOperativas.join('|');
                     return `<td class="tooltip-cell" data-operativas="${operativasText}" data-title="${title}" style="color: ${color}; font-weight: 600;">${displayValue}</td>`;
@@ -3248,7 +3163,6 @@
                 }
             }
 
-            // Header dinámico según la selección
             let headerContent = '';
             if (selectedView === 'all') {
                 const datasetsCount = getLoadedDatasetsCount();
@@ -3365,11 +3279,10 @@
             
             document.getElementById('summaryTable').innerHTML = tableHTML;
             
-            // Añadir event listeners para tooltips
             addTooltipListeners();
         }
 
-        // Funciones para manejar tooltips del resumen
+        // Tooltip functions
         function addTooltipListeners() {
             const tooltipCells = document.querySelectorAll('.tooltip-cell');
             
@@ -3389,7 +3302,6 @@
             
             const operativas = operativasText.split('|');
             
-            // Crear tooltip si no existe
             let tooltip = document.getElementById('summary-tooltip');
             if (!tooltip) {
                 tooltip = document.createElement('div');
@@ -3405,10 +3317,8 @@
                 <div class="tooltip-content">${operativasList}</div>
             `;
             
-            // Posicionar tooltip
             moveTooltip(event);
             
-            // Mostrar tooltip
             tooltip.classList.add('visible');
         }
 
@@ -3432,17 +3342,14 @@
             let left = mouseX + 15;
             let top = mouseY - 10;
             
-            // Ajustar si se sale por la derecha
             if (left + tooltipRect.width > windowWidth) {
                 left = mouseX - tooltipRect.width - 15;
             }
             
-            // Ajustar si se sale por abajo
             if (top + tooltipRect.height > windowHeight) {
                 top = mouseY - tooltipRect.height - 10;
             }
             
-            // Ajustar si se sale por arriba
             if (top < 0) {
                 top = mouseY + 15;
             }
@@ -3451,7 +3358,7 @@
             tooltip.style.top = top + 'px';
         }
 
-        // Funciones para manejar tooltips de volumen
+        // Volume tooltip functions
         function addVolumeTooltipListeners() {
             const volumeCells = document.querySelectorAll('.volume-tooltip-cell');
             
@@ -3471,7 +3378,6 @@
             
             const volumeData = volumeInfo.split('|');
             
-            // Crear tooltip si no existe
             let tooltip = document.getElementById('volume-tooltip');
             if (!tooltip) {
                 tooltip = document.createElement('div');
@@ -3487,10 +3393,8 @@
                 <div class="tooltip-content">${volumeList}</div>
             `;
             
-            // Posicionar tooltip
             moveVolumeTooltip(event);
             
-            // Mostrar tooltip
             tooltip.classList.add('visible');
         }
 
@@ -3514,17 +3418,14 @@
             let left = mouseX + 15;
             let top = mouseY - 10;
             
-            // Ajustar si se sale por la derecha
             if (left + tooltipRect.width > windowWidth) {
                 left = mouseX - tooltipRect.width - 15;
             }
             
-            // Ajustar si se sale por abajo
             if (top + tooltipRect.height > windowHeight) {
                 top = mouseY - tooltipRect.height - 10;
             }
             
-            // Ajustar si se sale por arriba
             if (top < 0) {
                 top = mouseY + 15;
             }
@@ -3537,10 +3438,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             switchTab('analysis');
             
-            // NUEVO: Inicializar estado correcto del sidebar al cargar la página
             initializeSidebar();
             
-            // Event listeners para sidebar toggle
             document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
             document.addEventListener('click', handleOutsideClick);
             window.addEventListener('resize', handleResize);
@@ -3576,18 +3475,15 @@
             const isSelectingAll = currentSelections.size < currentData.length;
             
             if (isSelectingAll) {
-                // Seleccionar todas las operativas
                 currentData.forEach((_, index) => {
                     currentSelections.add(index);
                 });
                 this.innerHTML = '<i class="fas fa-square"></i> Deseleccionar Todas';
             } else {
-                // Deseleccionar todas las operativas
                 currentSelections.clear();
                 this.innerHTML = '<i class="fas fa-check-square"></i> Seleccionar Todas';
             }
             
-            // CORREGIDO: Actualizar la UI correctamente
             renderOperatives(currentActiveDataset);
             updateSelectionInfo(currentActiveDataset);
         });
@@ -3648,7 +3544,7 @@
             renderOperatives(currentActiveDataset);
         });
 
-        // Results filters - Actualizado para remover listeners de elementos que ya no existen
+        // Results filters
         document.addEventListener('change', function(e) {
             if (e.target.id === 'salidaComparison') {
                 activeFilters.salidaComparison = e.target.value;
@@ -3662,10 +3558,10 @@
             } else if (e.target.id === 'llegadaHoraComparison') {
                 activeFilters.llegadaHoraComparison = e.target.value;
                 applyAllFilters();
-            } else if (e.target.id === 'tiempoDireccionFilter') { // NUEVO
+            } else if (e.target.id === 'tiempoDireccionFilter') {
                 activeFilters.tiempoDireccion = e.target.value;
                 applyAllFilters();
-            } else if (e.target.id === 'tiempoTipoFilter') { // NUEVO
+            } else if (e.target.id === 'tiempoTipoFilter') {
                 activeFilters.tiempoTipo = e.target.value;
                 applyAllFilters();
             }
@@ -3687,7 +3583,7 @@
             } else if (e.target.id === 'retrasosThresholdFilter') {
                 activeFilters.retrasosThreshold = e.target.value;
                 applyAllFilters();
-            } else if (e.target.id === 'tiempoDiferenciaFilter') { // NUEVO
+            } else if (e.target.id === 'tiempoDiferenciaFilter') {
                 activeFilters.tiempoDiferencia = e.target.value;
                 applyAllFilters();
             }
@@ -3707,7 +3603,6 @@
             tensionadaLlegadaThreshold = parseInt(document.getElementById('tensionadaLlegadaInput').value);
             holguraThreshold = parseInt(document.getElementById('holguraInput').value);
             
-            // Re-analizar todos los datasets con los nuevos umbrales
             let hasResults = false;
             datasets.forEach((data, index) => {
                 if (data && selectedOperativesByDataset[index].size > 0) {
@@ -3718,12 +3613,10 @@
                 }
             });
             
-            // Actualizar vista actual si hay resultados
             if (hasResults && analysisResultsByDataset[currentActiveDataset].length > 0) {
                 displayResults(analysisResultsByDataset[currentActiveDataset], currentActiveDataset);
             }
             
-            // Actualizar tabs
             showDatasetTabs();
             
             this.innerHTML = '<i class="fas fa-check"></i> Configuración Aplicada';
@@ -3736,7 +3629,6 @@
 
         // Download
         document.getElementById('downloadBtn').addEventListener('click', function() {
-            // Consolidar todos los resultados para descarga
             const allResults = [];
             datasets.forEach((data, index) => {
                 if (data && analysisResultsByDataset[index].length > 0) {
@@ -3766,7 +3658,7 @@
                 'Clasificación': result.accion || '',
                 'Problemas de Volumen': result.volumeProblems ? result.volumeProblems.message : '',
                 'Posibles Acciones': createPlainTextRecommendations(result),
-                'Comentarios': getComment(result.operativa), // NUEVO: Incluir comentarios en descarga
+                'Comentarios': getComment(result.operativa),
                 'Col Teóricas': formatValue(result.colTeorica),
                 'PD Teórico': formatValue(result.pdTeorico),
                 'UD Teórico': formatValue(result.udTeorico),
@@ -3795,7 +3687,6 @@
             link.click();
             document.body.removeChild(link);
             
-            // Visual feedback
             const btn = document.getElementById('downloadBtn');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-check"></i> Descargado';
