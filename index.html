@@ -1912,9 +1912,9 @@
             // Formato con enlace en Productividad
             if (diferenciaCol !== 0) {
                 const accionProductividad = diferenciaCol < 0 ? "Reducir productividad" : "Aumentar productividad";
-                recommendations.push(`<strong><a href="${metabaseUrl}" target="_blank" style="color: #3b82f6; text-decoration: none;">Productividad</a></strong>: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (${accionProductividad}: ${Math.abs(diferenciaCol).toFixed(2)})`);
+                recommendations.push(`<strong><a href="${metabaseUrl}" target="_blank" style="color: #3b82f6; text-decoration: underline;">Productividad</a></strong>: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (${accionProductividad}: ${Math.abs(diferenciaCol).toFixed(2)})`);
             } else {
-                recommendations.push(`<strong><a href="${metabaseUrl}" target="_blank" style="color: #3b82f6; text-decoration: none;">Productividad</a></strong>: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (Equilibrada)`);
+                recommendations.push(`<strong><a href="${metabaseUrl}" target="_blank" style="color: #3b82f6; text-decoration: underline;">Productividad</a></strong>: Teórico: ${colTeorica.toFixed(2)}, Tempus: ${colTempus.toFixed(2)} (Equilibrada)`);
             }
             
             const pdTeorico = parseValue(result.pdTeorico);
@@ -2864,11 +2864,11 @@
                 
                 return `
                 <tr>
-                    <td><strong><a href="${simulacionUrl}" target="_blank" style="color: #f9fafb; text-decoration: none;">${result.operativa}</a></strong></td>
+                    <td><strong><a href="${simulacionUrl}" target="_blank" style="color: #f9fafb; text-decoration: underline;">${result.operativa}</a></strong></td>
                     <td>${formatValue(result.rutasDia)}</td>
                     <td>${formatValue(result.dias)}</td>
                     <td>${formatValue(result.colPorRuta)}</td>
-                    <td><a href="${retrasosUrl}" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 600;">${formatValue(result.porcRetrasos)}%</a></td>
+                    <td><a href="${retrasosUrl}" target="_blank" style="color: #3b82f6; text-decoration: underline; font-weight: 600;">${formatValue(result.porcRetrasos)}%</a></td>
                     <td>
                         <div class="progress-cell">
                             <div class="progress-bar">
