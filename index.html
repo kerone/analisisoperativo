@@ -2865,7 +2865,7 @@
                 
                 // URL para simulación de rutas (fecha de hoy y hive_code)
                 const fechaHoy = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
-                const simulacionUrl = `https://metabase.prod.monline/question/21898-new-slot-machine-routes-simulation-plan?configuration_id=&area_name=&shift=&route_tpe=&Fecha=${fechaHoy}&hive_code=${colmena}`;
+                const simulacionUrl = `https://metabase.prod.monline/question/21898-new-slot-machine-routes-simulation-plan?configuration_id=&area_name=${encodeURIComponent(area)}&shift=${turno}&route_tpe=&Fecha=${fechaHoy}&hive_code=${colmena}`;
                 
                 return `
                 <tr>
