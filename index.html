@@ -1453,6 +1453,10 @@
                                         <i class="fas fa-download"></i>
                                         Descargar CSV
                                     </button>
+                                    <button id="downloadExcelBtn" class="btn btn-success" style="margin-left: 0.5rem;">
+                                        <i class="fas fa-file-excel"></i>
+                                        Descargar Excel
+                                    </button>
                                 </div>
                             </div>
                             <div class="table-container">
@@ -1563,6 +1567,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         // Variables globales
         let tensionadaRetrasosThreshold = 60;
@@ -3644,7 +3649,20 @@
                 return;
             }
             
+            // Función para calcular número de semana del año
+            function getWeekNumber(date) {
+                const d = new Date(date);
+                d.setHours(0, 0, 0, 0);
+                d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+                const week1 = new Date(d.getFullYear(), 0, 4);
+                return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+            }
+            
+            const fechaActual = new Date();
+            const numeroSemana = getWeekNumber(fechaActual);
+            
             const csvData = allResults.map(result => ({
+                'Colmena': extractColmena(result.operativa) || '',
                 'Operativa': result.operativa || '',
                 'Rutas por Día': formatValue(result.rutasDia),
                 'Días': formatValue(result.dias),
@@ -3666,7 +3684,8 @@
                 'PD Tempus': formatValue(result.pdTempus),
                 'UD Tempus': formatValue(result.udTempus),
                 'Col Volumen': formatValue(result.colVolumen),
-                'Fecha Análisis': new Date().toLocaleDateString('es-ES')
+                'Fecha Análisis': new Date().toLocaleDateString('es-ES'),
+                'Semana': numeroSemana
             }));
             
             const headers = Object.keys(csvData[0]);
@@ -3688,6 +3707,112 @@
             document.body.removeChild(link);
             
             const btn = document.getElementById('downloadBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Descargado';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+            }, 2000);
+        });
+
+        // Download Excel
+        document.getElementById('downloadExcelBtn').addEventListener('click', function() {
+            const allResults = [];
+            datasets.forEach((data, index) => {
+                if (data && analysisResultsByDataset[index].length > 0) {
+                    allResults.push(...analysisResultsByDataset[index].map(result => ({
+                        ...result,
+                        dataset: datasetNames[index] || `Archivo ${index + 1}`
+                    })));
+                }
+            });
+            
+            if (allResults.length === 0) {
+                alert('No hay datos para descargar');
+                return;
+            }
+            
+            // Función para calcular número de semana del año
+            function getWeekNumber(date) {
+                const d = new Date(date);
+                d.setHours(0, 0, 0, 0);
+                d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+                const week1 = new Date(d.getFullYear(), 0, 4);
+                return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+            }
+            
+            const fechaActual = new Date();
+            const numeroSemana = getWeekNumber(fechaActual);
+            
+            const excelData = allResults.map(result => ({
+                'Colmena': extractColmena(result.operativa) || '',
+                'Operativa': result.operativa || '',
+                'Rutas por Día': formatValue(result.rutasDia),
+                'Días': formatValue(result.dias),
+                'Columnas por Ruta': formatValue(result.colPorRuta),
+                '% Retrasos': formatValue(result.porcRetrasos),
+                '% Sin Retraso': formatValue(result.porcSinRetraso),
+                '% Salida en Hora': formatValue(result.porcSalidaEnHora),
+                '% Llegada Área': formatValue(result.porcLlegadaArea),
+                '% Retraso en Área': formatValue(result.porcRetrasoEnArea),
+                '% Llegada en Hora': formatValue(result.porcLlegadaEnHora),
+                'Clasificación': result.accion || '',
+                'Problemas de Volumen': result.volumeProblems ? result.volumeProblems.message : '',
+                'Posibles Acciones': createPlainTextRecommendations(result),
+                'Comentarios': getComment(result.operativa),
+                'Col Teóricas': formatValue(result.colTeorica),
+                'PD Teórico': formatValue(result.pdTeorico),
+                'UD Teórico': formatValue(result.udTeorico),
+                'Col Tempus': formatValue(result.colTempus),
+                'PD Tempus': formatValue(result.pdTempus),
+                'UD Tempus': formatValue(result.udTempus),
+                'Col Volumen': formatValue(result.colVolumen),
+                'Fecha Análisis': new Date().toLocaleDateString('es-ES'),
+                'Semana': numeroSemana
+            }));
+            
+            // Crear workbook de Excel
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            
+            // Configurar ancho de columnas
+            const columnWidths = [
+                { wch: 10 }, // Colmena
+                { wch: 25 }, // Operativa
+                { wch: 12 }, // Rutas por Día
+                { wch: 8 },  // Días
+                { wch: 15 }, // Columnas por Ruta
+                { wch: 10 }, // % Retrasos
+                { wch: 12 }, // % Sin Retraso
+                { wch: 15 }, // % Salida en Hora
+                { wch: 15 }, // % Llegada Área
+                { wch: 18 }, // % Retraso en Área
+                { wch: 18 }, // % Llegada en Hora
+                { wch: 18 }, // Clasificación
+                { wch: 20 }, // Problemas de Volumen
+                { wch: 50 }, // Posibles Acciones
+                { wch: 30 }, // Comentarios
+                { wch: 12 }, // Col Teóricas
+                { wch: 12 }, // PD Teórico
+                { wch: 12 }, // UD Teórico
+                { wch: 12 }, // Col Tempus
+                { wch: 12 }, // PD Tempus
+                { wch: 12 }, // UD Tempus
+                { wch: 12 }, // Col Volumen
+                { wch: 15 }, // Fecha Análisis
+                { wch: 8 }   // Semana
+            ];
+            ws['!cols'] = columnWidths;
+            
+            // Agregar hoja al workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Análisis Operativo');
+            
+            // Descargar archivo
+            const fechaArchivo = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `analisis_consolidado_${fechaArchivo}.xlsx`);
+            
+            // Visual feedback
+            const btn = document.getElementById('downloadExcelBtn');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-check"></i> Descargado';
             
