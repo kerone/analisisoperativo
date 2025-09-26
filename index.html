@@ -843,6 +843,11 @@
             display: inline-block;
         }
 
+        /* Asegurar subrayado en enlaces de badges */
+        a .percentage-badge {
+            text-decoration: underline !important;
+        }
+
         .percentage-excellent {
             background: #059669;
         }
@@ -2863,6 +2868,9 @@
                 // URL para seguimiento de retrasos (respeta mayúsculas/minúsculas)
                 const retrasosUrl = `https://metabase.prod.monline/question/28532-seguimiento-retrasos-por-tramo-u7d?area=${encodeURIComponent(area)}&hive_code=${colmena}&shift=${turno}`;
                 
+                // URL para salidas tarde por loading order
+                const salidasTardeUrl = `https://metabase.prod.monline/question/29057-salidas-tarde-por-loading-order-30d?hive_code=${colmena}&shift=${turno}&area=${encodeURIComponent(area)}`;
+                
                 // URL para simulación de rutas (fecha de hoy y hive_code)
                 const fechaHoy = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
                 const simulacionUrl = `https://metabase.prod.monline/question/21898-new-slot-machine-routes-simulation-plan?configuration_id=&area_name=${encodeURIComponent(area)}&shift=${turno}&route_tpe=&Fecha=${fechaHoy}&hive_code=${colmena}`;
@@ -2883,7 +2891,9 @@
                         </div>
                     </td>
                     <td>
-                        <span class="percentage-badge ${getPercentageBadgeClass(salidaValue)}">${formatValue(result.porcSalidaEnHora)}%</span>
+                        <a href="${salidasTardeUrl}" target="_blank" style="text-decoration: underline !important;">
+                            <span class="percentage-badge ${getPercentageBadgeClass(salidaValue)}" style="text-decoration: underline !important;">${formatValue(result.porcSalidaEnHora)}%</span>
+                        </a>
                     </td>
                     <td>
                         <span class="percentage-badge ${getPercentageBadgeClass(llegadaAreaValue)}">${formatValue(result.porcLlegadaArea)}%</span>
