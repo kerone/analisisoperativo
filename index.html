@@ -1926,6 +1926,9 @@
             // Construir URL de Metabase con parámetros específicos
             const metabaseUrl = `https://metabase.prod.monline/question/29582-productividad-teorica-diaria?colmena=${colmena}&shift=${turno}&area=${encodeURIComponent(areaForUrl.toLowerCase())}`;
             
+            // Construir URL de Tempus con la colmena
+            const tempusUrl = `https://tempus.prod.monline/centers/${colmena.toLowerCase()}/operatives`;
+            
             const colTeorica = parseValue(result.colTeorica);
             const colTempus = parseValue(result.colTempus);
             const diferenciaCol = colTeorica - colTempus;
@@ -1959,6 +1962,9 @@
             } else {
                 recommendations.push(`<strong>Tiempo de vuelta</strong>: Histórico: ${udTeorico.toFixed(2)}, Tempus: ${udTempus.toFixed(2)} (Equilibrado)`);
             }
+            
+            // Agregar enlace a Tempus al final
+            recommendations.push(`<strong><a href="${tempusUrl}" target="_blank" style="color: #3b82f6; text-decoration: underline;">Ir a Configuración</a></strong>`);
             
             return recommendations.join('<br>');
         }
