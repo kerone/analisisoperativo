@@ -645,6 +645,22 @@
             display: block;
         }
 
+        .multi-select-clear {
+            padding: 0.5rem 0.75rem;
+            background: #374151;
+            color: #e5e7eb;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 1px solid #4b5563;
+            transition: background 0.2s ease;
+        }
+
+        .multi-select-clear:hover {
+            background: #4b5563;
+        }
+
         .multi-select-option {
             padding: 0.5rem 0.75rem;
             display: flex;
@@ -2519,7 +2535,11 @@
             const sortedColmenas = Array.from(colmenasInResults).sort();
             const colmenaDropdown = document.getElementById('colmenaDropdown');
             
-            colmenaDropdown.innerHTML = sortedColmenas.map(colmena => `
+            colmenaDropdown.innerHTML = `
+                <div class="multi-select-clear" onclick="clearMultiSelectFilter('colmena'); event.stopPropagation();">
+                    <i class="fas fa-times"></i> Desmarcar todos
+                </div>
+            ` + sortedColmenas.map(colmena => `
                 <div class="multi-select-option" onclick="event.stopPropagation()">
                     <input type="checkbox" id="colmena_${colmena}" value="${colmena}" 
                            onchange="toggleMultiSelectOption('colmena', '${colmena}', this); updateAreaFilterByColmena();">
@@ -2530,7 +2550,11 @@
             const sortedAreas = Array.from(areasInResults).sort();
             const areaDropdown = document.getElementById('areaDropdown');
             
-            areaDropdown.innerHTML = sortedAreas.map(area => {
+            areaDropdown.innerHTML = `
+                <div class="multi-select-clear" onclick="clearMultiSelectFilter('area'); event.stopPropagation();">
+                    <i class="fas fa-times"></i> Desmarcar todos
+                </div>
+            ` + sortedAreas.map(area => {
                 const colmenas = areasByColmena[area] ? Array.from(areasByColmena[area]).join(',') : '';
                 return `
                     <div class="multi-select-option area-option" data-colmenas="${colmenas}" onclick="event.stopPropagation()">
@@ -2544,7 +2568,11 @@
             const sortedTurnos = Array.from(turnosInResults).sort();
             const turnoDropdown = document.getElementById('turnoDropdown');
             
-            turnoDropdown.innerHTML = sortedTurnos.map(turno => `
+            turnoDropdown.innerHTML = `
+                <div class="multi-select-clear" onclick="clearMultiSelectFilter('turno'); event.stopPropagation();">
+                    <i class="fas fa-times"></i> Desmarcar todos
+                </div>
+            ` + sortedTurnos.map(turno => `
                 <div class="multi-select-option" onclick="event.stopPropagation()">
                     <input type="checkbox" id="turno_${turno}" value="${turno}" 
                            onchange="toggleMultiSelectOption('turno', '${turno}', this)">
@@ -2560,7 +2588,11 @@
             const sortedAcciones = Array.from(accionesInResults).sort();
             const clasificacionDropdown = document.getElementById('clasificacionDropdown');
             
-            clasificacionDropdown.innerHTML = sortedAcciones.map(accion => `
+            clasificacionDropdown.innerHTML = `
+                <div class="multi-select-clear" onclick="clearMultiSelectFilter('clasificacion'); event.stopPropagation();">
+                    <i class="fas fa-times"></i> Desmarcar todos
+                </div>
+            ` + sortedAcciones.map(accion => `
                 <div class="multi-select-option" onclick="event.stopPropagation()">
                     <input type="checkbox" id="accion_${accion.replace(/\s+/g, '_')}" value="${accion}" 
                            onchange="toggleMultiSelectOption('clasificacion', '${accion}', this)">
@@ -2591,6 +2623,45 @@
                     }
                 });
             }
+        }
+
+        function clearMultiSelectFilter(type) {
+            let filterKey;
+            let dropdownId;
+            
+            if (type === 'colmena') {
+                filterKey = 'colmena';
+                dropdownId = 'colmenaDropdown';
+            } else if (type === 'area') {
+                filterKey = 'area';
+                dropdownId = 'areaDropdown';
+            } else if (type === 'turno') {
+                filterKey = 'turno';
+                dropdownId = 'turnoDropdown';
+            } else if (type === 'clasificacion') {
+                filterKey = 'accionRecomendada';
+                dropdownId = 'clasificacionDropdown';
+            }
+            
+            // Limpiar el array de filtros activos
+            activeFilters[filterKey] = [];
+            
+            // Desmarcar todos los checkboxes
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Actualizar display
+            updateMultiSelectDisplay(type);
+            
+            // Si es colmena, actualizar el filtro de áreas
+            if (type === 'colmena') {
+                updateAreaFilterByColmena();
+            }
+            
+            // Aplicar filtros
+            applyAllFilters();
         }
 
         function applyAllFilters() {
