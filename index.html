@@ -2495,6 +2495,9 @@
             const areasInResults = new Set();
             const turnosInResults = new Set();
             
+            // Crear mapa de áreas por colmena
+            const areasByColmena = {};
+            
             currentResults.forEach(result => {
                 const colmena = extractColmena(result.operativa);
                 const area = extractArea(result.operativa);
@@ -2503,6 +2506,14 @@
                 if (colmena) colmenasInResults.add(colmena);
                 if (area) areasInResults.add(area);
                 if (turno) turnosInResults.add(turno);
+                
+                // Mapear áreas a colmenas
+                if (colmena && area) {
+                    if (!areasByColmena[area]) {
+                        areasByColmena[area] = new Set();
+                    }
+                    areasByColmena[area].add(colmena);
+                }
             });
             
             const sortedColmenas = Array.from(colmenasInResults).sort();
@@ -2511,7 +2522,7 @@
             colmenaDropdown.innerHTML = sortedColmenas.map(colmena => `
                 <div class="multi-select-option" onclick="event.stopPropagation()">
                     <input type="checkbox" id="colmena_${colmena}" value="${colmena}" 
-                           onchange="toggleMultiSelectOption('colmena', '${colmena}', this)">
+                           onchange="toggleMultiSelectOption('colmena', '${colmena}', this); updateAreaFilterByColmena();">
                     <label for="colmena_${colmena}" class="multi-select-text">${colmena.toUpperCase()}</label>
                 </div>
             `).join('');
@@ -2519,13 +2530,16 @@
             const sortedAreas = Array.from(areasInResults).sort();
             const areaDropdown = document.getElementById('areaDropdown');
             
-            areaDropdown.innerHTML = sortedAreas.map(area => `
-                <div class="multi-select-option" onclick="event.stopPropagation()">
-                    <input type="checkbox" id="area_${area}" value="${area}" 
-                           onchange="toggleMultiSelectOption('area', '${area}', this)">
-                    <label for="area_${area}" class="multi-select-text">${area.charAt(0).toUpperCase() + area.slice(1)}</label>
-                </div>
-            `).join('');
+            areaDropdown.innerHTML = sortedAreas.map(area => {
+                const colmenas = areasByColmena[area] ? Array.from(areasByColmena[area]).join(',') : '';
+                return `
+                    <div class="multi-select-option area-option" data-colmenas="${colmenas}" onclick="event.stopPropagation()">
+                        <input type="checkbox" id="area_${area}" value="${area}" 
+                               onchange="toggleMultiSelectOption('area', '${area}', this)">
+                        <label for="area_${area}" class="multi-select-text">${area.charAt(0).toUpperCase() + area.slice(1)}</label>
+                    </div>
+                `;
+            }).join('');
 
             const sortedTurnos = Array.from(turnosInResults).sort();
             const turnoDropdown = document.getElementById('turnoDropdown');
@@ -2553,6 +2567,30 @@
                     <label for="accion_${accion.replace(/\s+/g, '_')}" class="multi-select-text">${accion}</label>
                 </div>
             `).join('');
+        }
+
+        function updateAreaFilterByColmena() {
+            const selectedColmenas = activeFilters.colmena;
+            const areaOptions = document.querySelectorAll('.area-option');
+            
+            if (selectedColmenas.length === 0) {
+                // Si no hay colmenas seleccionadas, mostrar todas las áreas
+                areaOptions.forEach(option => {
+                    option.style.display = '';
+                });
+            } else {
+                // Mostrar solo las áreas que pertenecen a las colmenas seleccionadas
+                areaOptions.forEach(option => {
+                    const colmenasAttr = option.getAttribute('data-colmenas');
+                    if (colmenasAttr) {
+                        const colmenas = colmenasAttr.split(',');
+                        const hasMatch = selectedColmenas.some(selected => colmenas.includes(selected));
+                        option.style.display = hasMatch ? '' : 'none';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+            }
         }
 
         function applyAllFilters() {
