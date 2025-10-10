@@ -3002,7 +3002,7 @@
                 const retrasosUrl = `https://metabase.prod.monline/question/28532-seguimiento-retrasos-por-tramo-u7d?area=${encodeURIComponent(area)}&hive_code=${colmena}&shift=${turno}`;
                 
                 // URL para salidas tarde por loading order
-                const salidasTardeUrl = `https://metabase.prod.monline/question/29057-salidas-tarde-por-loading-order-30d?hive_code=${colmena}&shift=${turno}&area=${encodeURIComponent(area)}`;
+                const salidasTardeUrl = `https://metabase.prod.monline/question/29927-salidas-tarde-por-loading-order-7d?hive_code=${colmena}&shift=${turno}&area=${encodeURIComponent(area)}`;
                 
                 // URL para simulación de rutas (fecha de hoy y hive_code)
                 const fechaHoy = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
@@ -3823,6 +3823,7 @@
                 'Problemas de Volumen': result.volumeProblems ? result.volumeProblems.message : '',
                 'Posibles Acciones': createPlainTextRecommendations(result),
                 'Comentarios': getComment(result.operativa),
+                '': '', // Columna en blanco
                 'Col Teóricas': formatValue(result.colTeorica),
                 'PD Teórico': formatValue(result.pdTeorico),
                 'UD Teórico': formatValue(result.udTeorico),
@@ -3906,6 +3907,7 @@
                 'Problemas de Volumen': result.volumeProblems ? result.volumeProblems.message : '',
                 'Posibles Acciones': createPlainTextRecommendations(result),
                 'Comentarios': getComment(result.operativa),
+                '': '', // Columna en blanco
                 'Col Teóricas': formatValue(result.colTeorica),
                 'PD Teórico': formatValue(result.pdTeorico),
                 'UD Teórico': formatValue(result.udTeorico),
@@ -3938,6 +3940,7 @@
                 { wch: 20 }, // Problemas de Volumen
                 { wch: 50 }, // Posibles Acciones
                 { wch: 30 }, // Comentarios
+                 { wch: 3 },  // Columna en blanco
                 { wch: 12 }, // Col Teóricas
                 { wch: 12 }, // PD Teórico
                 { wch: 12 }, // UD Teórico
