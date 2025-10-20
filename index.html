@@ -1172,11 +1172,27 @@
                 <div id="analysisTab" class="tab-content active">
                     <!-- File Upload Card -->
                     <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <h2 class="card-title" style="margin: 0;">
                                 <i class="fas fa-upload"></i>
                                 Cargar Datos (hasta 4 archivos)
                             </h2>
+                            
+                            <!-- Selector de fechas para Metabase -->
+                            <div style="display: flex; align-items: center; gap: 0.75rem; background: #374151; padding: 0.75rem 1rem; border-radius: 0.5rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <label style="font-size: 0.875rem; color: #d1d5db; white-space: nowrap;">Desde:</label>
+                                    <input type="date" id="metabaseFechaInicio" style="padding: 0.375rem 0.5rem; background: #1a1f2e; border: 1px solid #4b5563; border-radius: 0.375rem; color: #e5e7eb; font-size: 0.875rem;" />
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <label style="font-size: 0.875rem; color: #d1d5db; white-space: nowrap;">Hasta:</label>
+                                    <input type="date" id="metabaseFechaFin" style="padding: 0.375rem 0.5rem; background: #1a1f2e; border: 1px solid #4b5563; border-radius: 0.375rem; color: #e5e7eb; font-size: 0.875rem;" />
+                                </div>
+                                <a id="metabaseLink" href="#" target="_blank" class="btn btn-primary" style="white-space: nowrap; text-decoration: none;">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    Abrir en Metabase
+                                </a>
+                            </div>
                         </div>
                         
                         <!-- File Upload Grid -->
@@ -4918,6 +4934,43 @@ Solución:
 
         // ==================== FUNCIONES INFORME MENSUAL ====================
         
+        // Función para actualizar el enlace de Metabase
+        function actualizarEnlaceMetabase() {
+            const fechaInicio = document.getElementById('metabaseFechaInicio').value;
+            const fechaFin = document.getElementById('metabaseFechaFin').value;
+            const metabaseLink = document.getElementById('metabaseLink');
+            
+            if (fechaInicio && fechaFin) {
+                const url = `https://metabase.prod.monline/question/29112-contrastacion-operativas?hive_code=&area=&llegada_en_hora_holgura=&llegada_en_hora_tensionada=&retraso_area_tensionada=&shift=&fecha_inicio=${fechaInicio}&retraso_holgura=&volumen_ok=&fecha_fin=${fechaFin}`;
+                metabaseLink.href = url;
+                metabaseLink.style.opacity = '1';
+                metabaseLink.style.pointerEvents = 'auto';
+            } else {
+                metabaseLink.href = '#';
+                metabaseLink.style.opacity = '0.5';
+                metabaseLink.style.pointerEvents = 'none';
+            }
+        }
+        
+        // Inicializar fechas por defecto (últimos 7 días)
+        function inicializarFechasMetabase() {
+            const hoy = new Date();
+            const hace7dias = new Date();
+            hace7dias.setDate(hoy.getDate() - 7);
+            
+            const formatoFecha = (fecha) => {
+                const año = fecha.getFullYear();
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                const dia = String(fecha.getDate()).padStart(2, '0');
+                return `${año}-${mes}-${dia}`;
+            };
+            
+            document.getElementById('metabaseFechaInicio').value = formatoFecha(hace7dias);
+            document.getElementById('metabaseFechaFin').value = formatoFecha(hoy);
+            
+            actualizarEnlaceMetabase();
+        }
+        
         async function inicializarInforme() {
             try {
                 const response = await fetch(`${JSONBIN_CONFIG.apiUrl}/b/${JSONBIN_CONFIG.binId}/latest`, {
@@ -5350,6 +5403,8 @@ Solución:
             const filtroArea = document.getElementById('filtroArea');
             const limpiarBtn = document.getElementById('limpiarFiltrosBtn');
             const generarInformeBtn = document.getElementById('generarInformeBtn');
+            const fechaInicioMetabase = document.getElementById('metabaseFechaInicio');
+            const fechaFinMetabase = document.getElementById('metabaseFechaFin');
             
             if (saveBtn) saveBtn.addEventListener('click', saveRegistroToJsonBin);
             if (reloadBtn) reloadBtn.addEventListener('click', () => loadRegistro(false));
@@ -5367,6 +5422,17 @@ Solución:
             if (generarInformeBtn) {
                 generarInformeBtn.addEventListener('click', generarInforme);
             }
+            
+            // Event listeners para fechas de Metabase
+            if (fechaInicioMetabase) {
+                fechaInicioMetabase.addEventListener('change', actualizarEnlaceMetabase);
+            }
+            if (fechaFinMetabase) {
+                fechaFinMetabase.addEventListener('change', actualizarEnlaceMetabase);
+            }
+            
+            // Inicializar fechas por defecto
+            inicializarFechasMetabase();
         }, 100);
 
         // Función para descargar Excel del Registro
