@@ -1125,7 +1125,7 @@
             </div>
             <nav class="nav-menu">
                 <a href="#" class="nav-item active" data-tab="analysis">
-                    <i class="fas fa-analytics"></i>
+                    <i class="fas fa-chart-line"></i>
                     <span>Análisis</span>
                 </a>
                 <a href="#" class="nav-item" data-tab="summary">
@@ -1139,6 +1139,10 @@
                 <a href="#" class="nav-item" data-tab="registro">
                     <i class="fas fa-clipboard-list"></i>
                     <span>Registro</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="informe">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Informe Mensual</span>
                 </a>
             </nav>
         </div>
@@ -1262,7 +1266,7 @@
                     </div>
 
                     <!-- Operatives Selection -->
-                    <div id="operativesCard" class="card hidden">
+                    <div id="operativesCard" class="card hidden" style="display: none !important;">
                         <div class="card-header">
                             <h2 class="card-title">
                                 <i class="fas fa-tasks"></i>
@@ -1508,6 +1512,7 @@
                                             <th>Clasificación</th>
                                             <th>Problemas Volumen</th>
                                             <th>Posibles Acciones</th>
+                                            <th>Acción</th>
                                             <th class="comments-column">Comentarios</th>
                                         </tr>
                                     </thead>
@@ -1652,6 +1657,59 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Informe Mensual Tab -->
+                <div id="informeTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-file-chart-line"></i>
+                                Informe Mensual
+                            </h2>
+                            <div>
+                                <button class="btn btn-primary" id="generarInformeBtn">
+                                    <i class="fas fa-chart-pie"></i>
+                                    Generar Informe
+                                </button>
+                                <button class="btn btn-success" id="downloadInformeExcelBtn" style="margin-left: 0.5rem;">
+                                    <i class="fas fa-file-excel"></i>
+                                    Descargar Excel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Selector de Semanas -->
+                        <div style="background: #374151; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                            <h3 style="color: #f9fafb; font-size: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-calendar-week"></i>
+                                Seleccionar Semanas para el Informe
+                            </h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.875rem; color: #d1d5db; margin-bottom: 0.5rem;">Desde Semana:</label>
+                                    <select id="informeSemanaDesde" style="width: 100%; padding: 0.5rem; background: #1a1f2e; border: 1px solid #4b5563; border-radius: 0.375rem; color: #e5e7eb; font-size: 0.875rem;">
+                                        <option value="">Seleccionar...</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.875rem; color: #d1d5db; margin-bottom: 0.5rem;">Hasta Semana:</label>
+                                    <select id="informeSemanaHasta" style="width: 100%; padding: 0.5rem; background: #1a1f2e; border: 1px solid #4b5563; border-radius: 0.375rem; color: #e5e7eb; font-size: 0.875rem;">
+                                        <option value="">Seleccionar...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contenedor del Informe -->
+                        <div id="informeContainer">
+                            <div style="text-align: center; padding: 3rem; color: #6b7280;">
+                                <i class="fas fa-chart-line" style="font-size: 3rem; color: #374151; margin-bottom: 1rem;"></i>
+                                <h3>Selecciona las semanas y genera el informe</h3>
+                                <p>Análisis estadístico de las operativas del período seleccionado</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1666,6 +1724,7 @@
         let sidebarCollapsed = false;
         let commentsVisible = false;
         let operativeComments = {};
+        let operativeActions = {}; // Guardar las acciones seleccionadas por operativa
         
         // Arrays para manejar múltiples datasets
         let datasets = [null, null, null, null];
@@ -1834,6 +1893,16 @@
             return operativeComments[operativa] || '';
         }
 
+        // Función para guardar acción seleccionada
+        function saveAction(operativa, action) {
+            operativeActions[operativa] = action;
+        }
+
+        // Función para obtener acción seleccionada
+        function getAction(operativa) {
+            return operativeActions[operativa] || '';
+        }
+
         // Función para limpiar comentarios al cargar nuevos datos
         function clearCommentsForDataset(datasetIndex) {
             if (analysisResultsByDataset[datasetIndex]) {
@@ -1868,12 +1937,18 @@
             const titles = {
                 'analysis': 'Dashboard de Análisis',
                 'summary': 'Resumen por Colmena',
-                'settings': 'Configuración de Umbrales'
+                'settings': 'Configuración de Umbrales',
+                'registro': 'Registro de Operativas',
+                'informe': 'Informe Mensual'
             };
             document.getElementById('pageTitle').textContent = titles[tabName];
             
             if (tabName === 'summary') {
                 showSummaryTab();
+            }
+            
+            if (tabName === 'informe') {
+                inicializarInforme();
             }
         }
 
@@ -2208,6 +2283,13 @@
                     switchDataset(datasetIndex);
                     
                     console.log(`Archivo ${datasetIndex + 1} procesado: ${results.data.length} filas`);
+                    
+                    // ANÁLISIS AUTOMÁTICO: Analizar todas las operativas inmediatamente
+                    setTimeout(() => {
+                        const analysisResults = results.data.map(row => analyzeDelay(row));
+                        displayResults(analysisResults, datasetIndex);
+                        console.log(`Análisis automático completado para ${fileName}`);
+                    }, 100);
                 }
             });
         }
@@ -3090,6 +3172,11 @@
                                       data-comentario="${(infoRepetida.comentario || 'Sin comentario').replace(/"/g, '&quot;')}"
                                       data-fecha="${infoRepetida.fecha}"
                                       data-semana="${infoRepetida.semana}"
+                                      data-accion="${infoRepetida.accion || 'Sin acción'}"
+                                      data-salida="${infoRepetida.metricas?.porcSalidaEnHora || 'N/A'}"
+                                      data-llegada-area="${infoRepetida.metricas?.porcLlegadaArea || 'N/A'}"
+                                      data-retraso-area="${infoRepetida.metricas?.porcRetrasoEnArea || 'N/A'}"
+                                      data-llegada-hora="${infoRepetida.metricas?.porcLlegadaEnHora || 'N/A'}"
                                       style="display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; padding: 5px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.3px; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3); cursor: help;">
                                     <i class="fas fa-history" style="font-size: 0.65rem;"></i> REPETIDA
                                 </span>` 
@@ -3118,6 +3205,17 @@
                             <span class="status-badge ${result.volumeProblems.hasProblems ? 'status-warning' : 'status-success'}">${result.volumeProblems.message}</span>
                         </td>
                         <td style="font-size: 0.6875rem;">${createRecommendations(result)}</td>
+                        <td style="padding: 0.5rem;">
+                            <select class="action-select" 
+                                    onchange="saveAction('${result.operativa.replace(/'/g, "\\'")}', this.value)"
+                                    style="width: 100%; padding: 0.375rem 0.5rem; background: #1a1f2e; border: 1px solid #4b5563; border-radius: 0.375rem; color: #e5e7eb; font-size: 0.8125rem; cursor: pointer;">
+                                <option value="">Seleccionar...</option>
+                                <option value="Ajuste tiempo" ${getAction(result.operativa) === 'Ajuste tiempo' ? 'selected' : ''}>Ajuste tiempo</option>
+                                <option value="Ajuste productividad" ${getAction(result.operativa) === 'Ajuste productividad' ? 'selected' : ''}>Ajuste productividad</option>
+                                <option value="Ajuste productividad/tiempo" ${getAction(result.operativa) === 'Ajuste productividad/tiempo' ? 'selected' : ''}>Ajuste productividad/tiempo</option>
+                                <option value="Sin acción" ${getAction(result.operativa) === 'Sin acción' ? 'selected' : ''}>Sin acción</option>
+                            </select>
+                        </td>
                         <td class="comments-column">
                             <textarea class="comment-input" 
                                       placeholder="Añadir comentario..." 
@@ -3674,8 +3772,12 @@
         function showRepetidaTooltip(event) {
             const badge = event.currentTarget;
             const comentario = badge.getAttribute('data-comentario');
-            const fecha = badge.getAttribute('data-fecha');
             const semana = badge.getAttribute('data-semana');
+            const accion = badge.getAttribute('data-accion');
+            const salidaEnHora = badge.getAttribute('data-salida');
+            const llegadaArea = badge.getAttribute('data-llegada-area');
+            const retrasoArea = badge.getAttribute('data-retraso-area');
+            const llegadaEnHora = badge.getAttribute('data-llegada-hora');
             
             if (!comentario) return;
             
@@ -3693,8 +3795,29 @@
                 </div>
                 <div class="tooltip-content">
                     <div style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 0.5rem;">
-                        <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Fecha:</div>
-                        <div style="font-size: 0.8rem; font-weight: 600;">${fecha}</div>
+                        <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.5rem;">Métricas Anteriores:</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.75rem;">
+                            <div>
+                                <div style="color: #9ca3af; font-size: 0.7rem; margin-bottom: 0.25rem;">% Salida en Hora:</div>
+                                <div style="font-weight: 600;">${salidaEnHora}%</div>
+                            </div>
+                            <div>
+                                <div style="color: #9ca3af; font-size: 0.7rem; margin-bottom: 0.25rem;">% Llegada Área:</div>
+                                <div style="font-weight: 600;">${llegadaArea}%</div>
+                            </div>
+                            <div>
+                                <div style="color: #9ca3af; font-size: 0.7rem; margin-bottom: 0.25rem;">% Retraso en Área:</div>
+                                <div style="font-weight: 600;">${retrasoArea}%</div>
+                            </div>
+                            <div>
+                                <div style="color: #9ca3af; font-size: 0.7rem; margin-bottom: 0.25rem;">% Llegada en Hora:</div>
+                                <div style="font-weight: 600;">${llegadaEnHora}%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Acción Tomada:</div>
+                        <div style="display: inline-block; padding: 0.25rem 0.5rem; background: #3b82f6; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600;">${accion}</div>
                     </div>
                     <div style="padding: 0.5rem 0;">
                         <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Comentario:</div>
@@ -4130,14 +4253,23 @@
                             esRepetida: true,
                             comentario: registroEncontrado.comentario || 'Sin comentario',
                             fecha: registroEncontrado.fechaFormateada || '',
-                            semana: registroEncontrado.semana
+                            semana: registroEncontrado.semana,
+                            accion: registroEncontrado.accion || 'Sin acción',
+                            metricas: {
+                                porcSalidaEnHora: registroEncontrado.metricas?.porcSalidaEnHora || 'N/A',
+                                porcLlegadaArea: registroEncontrado.metricas?.porcLlegadaArea || 'N/A',
+                                porcRetrasoEnArea: registroEncontrado.metricas?.porcRetrasoEnArea || 'N/A',
+                                porcLlegadaEnHora: registroEncontrado.metricas?.porcLlegadaEnHora || 'N/A'
+                            }
                         };
                     } else {
                         repetidas[result.operativa] = {
                             esRepetida: false,
                             comentario: '',
                             fecha: '',
-                            semana: null
+                            semana: null,
+                            accion: '',
+                            metricas: null
                         };
                     }
                 });
@@ -4175,10 +4307,12 @@
                         analysisResultsByDataset[index].forEach(result => {
                             const comment = operativeComments[result.operativa];
                             if (comment && comment.trim()) {
+                                const action = operativeActions[result.operativa] || '';
                                 registros.push({
                                     operativa: result.operativa,
                                     colmena: extractColmena(result.operativa),
                                     comentario: comment,
+                                    accion: action,
                                     fecha: new Date().toISOString(),
                                     fechaFormateada: new Date().toLocaleDateString('es-ES'),
                                     semana: numeroSemana,
@@ -4413,6 +4547,7 @@
                                     <th style="padding: 12px; text-align: left; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563;">% Retraso en Área</th>
                                     <th style="padding: 12px; text-align: left; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563;">% Llegada en Hora</th>
                                     <th style="padding: 12px; text-align: left; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563;">Clasificación</th>
+                                    <th style="padding: 12px; text-align: left; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563;">Acción Tomada</th>
                                     <th style="padding: 12px; text-align: left; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563;">Comentarios</th>
                                 </tr>
                             </thead>
@@ -4461,8 +4596,26 @@
                                             <td style="padding: 12px;">
                                                 <span class="status-badge ${getStatusClass(reg.clasificacion || 'Sin Clasificar')}">${reg.clasificacion || 'Sin Clasificar'}</span>
                                             </td>
-                                            <td style="padding: 12px; color: #e5e7eb; font-size: 0.875rem; max-width: 300px;">
-                                                <div style="max-height: 60px; overflow-y: auto;">${reg.comentario || 'Sin comentario'}</div>
+                                            <td style="padding: 8px;">
+                                                <select class="action-select-registro" 
+                                                        data-registro-id="${registroId}"
+                                                        data-fecha="${reg.fecha}"
+                                                        data-operativa="${reg.operativa}"
+                                                        style="width: 100%; padding: 0.375rem 0.5rem; background: #1a1f2e; border: 1px solid #4b5563; border-radius: 0.375rem; color: #e5e7eb; font-size: 0.8125rem; cursor: pointer;">
+                                                    <option value="">Seleccionar...</option>
+                                                    <option value="Ajuste tiempo" ${(reg.accion === 'Ajuste tiempo') ? 'selected' : ''}>Ajuste tiempo</option>
+                                                    <option value="Ajuste productividad" ${(reg.accion === 'Ajuste productividad') ? 'selected' : ''}>Ajuste productividad</option>
+                                                    <option value="Ajuste productividad/tiempo" ${(reg.accion === 'Ajuste productividad/tiempo') ? 'selected' : ''}>Ajuste productividad/tiempo</option>
+                                                    <option value="Sin acción" ${(reg.accion === 'Sin acción') ? 'selected' : ''}>Sin acción</option>
+                                                </select>
+                                            </td>
+                                            <td style="padding: 8px;">
+                                                <textarea class="comment-input-registro" 
+                                                          data-registro-id="${registroId}"
+                                                          data-fecha="${reg.fecha}"
+                                                          data-operativa="${reg.operativa}"
+                                                          style="width: 100%; min-height: 60px; max-height: 100px; padding: 0.5rem; background: #1a1f2e; border: 1px solid #4b5563; border-radius: 0.375rem; color: #e5e7eb; font-size: 0.8125rem; resize: vertical;"
+                                                          placeholder="Editar comentario...">${reg.comentario || ''}</textarea>
                                             </td>
                                         </tr>
                                     `;
@@ -4659,20 +4812,562 @@ Solución:
             }
         }
 
-        // Event listeners para los nuevos botones
-        document.getElementById('saveRegistroBtn').addEventListener('click', saveRegistroToJsonBin);
-        document.getElementById('reloadRegistroBtn').addEventListener('click', () => loadRegistro(false));
-        
-        // Event listeners para los filtros
-        document.getElementById('filtroSemana').addEventListener('change', () => loadRegistro(true));
-        document.getElementById('filtroColmena').addEventListener('change', () => loadRegistro(true));
-        document.getElementById('filtroArea').addEventListener('change', () => loadRegistro(true));
-        document.getElementById('limpiarFiltrosBtn').addEventListener('click', () => {
-            document.getElementById('filtroSemana').value = '';
-            document.getElementById('filtroColmena').value = '';
-            document.getElementById('filtroArea').value = '';
-            loadRegistro(true);
+        // Función para guardar comentario editado en el registro
+        async function guardarComentarioEditado(fecha, operativa, nuevoComentario) {
+            try {
+                // Buscar y actualizar el registro
+                const registroIndex = allRegistros.findIndex(reg => 
+                    reg.fecha === fecha && reg.operativa === operativa
+                );
+                
+                if (registroIndex === -1) {
+                    console.error('No se encontró el registro');
+                    return;
+                }
+                
+                // Actualizar el comentario
+                allRegistros[registroIndex].comentario = nuevoComentario;
+                
+                // Guardar en JSONBin
+                const saveResponse = await fetch(`${JSONBIN_CONFIG.apiUrl}/b/${JSONBIN_CONFIG.binId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_CONFIG.masterKey,
+                        'X-Bin-Versioning': 'false'
+                    },
+                    body: JSON.stringify({ registros: allRegistros })
+                });
+
+                if (!saveResponse.ok) {
+                    throw new Error('Error al guardar cambios en JSONBin');
+                }
+                
+                console.log('Comentario actualizado correctamente');
+                
+            } catch (error) {
+                console.error('Error al guardar comentario:', error);
+                alert('Error al guardar el comentario: ' + error.message);
+            }
+        }
+
+        // Función para guardar acción editada en el registro
+        async function guardarAccionEditada(fecha, operativa, nuevaAccion) {
+            try {
+                // Buscar y actualizar el registro
+                const registroIndex = allRegistros.findIndex(reg => 
+                    reg.fecha === fecha && reg.operativa === operativa
+                );
+                
+                if (registroIndex === -1) {
+                    console.error('No se encontró el registro');
+                    return;
+                }
+                
+                // Actualizar la acción
+                allRegistros[registroIndex].accion = nuevaAccion;
+                
+                // Guardar en JSONBin
+                const saveResponse = await fetch(`${JSONBIN_CONFIG.apiUrl}/b/${JSONBIN_CONFIG.binId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_CONFIG.masterKey,
+                        'X-Bin-Versioning': 'false'
+                    },
+                    body: JSON.stringify({ registros: allRegistros })
+                });
+
+                if (!saveResponse.ok) {
+                    throw new Error('Error al guardar cambios en JSONBin');
+                }
+                
+                console.log('Acción actualizada correctamente');
+                
+            } catch (error) {
+                console.error('Error al guardar acción:', error);
+                alert('Error al guardar la acción: ' + error.message);
+            }
+        }
+
+        // Event listener para detectar cambios en los comentarios del registro
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('comment-input-registro')) {
+                const fecha = e.target.getAttribute('data-fecha');
+                const operativa = e.target.getAttribute('data-operativa');
+                const nuevoComentario = e.target.value;
+                
+                // Debounce - guardar después de 1 segundo sin escribir
+                clearTimeout(e.target.saveTimeout);
+                e.target.saveTimeout = setTimeout(() => {
+                    guardarComentarioEditado(fecha, operativa, nuevoComentario);
+                }, 1000);
+            }
         });
+
+        // Event listener para detectar cambios en el dropdown de acciones del registro
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('action-select-registro')) {
+                const fecha = e.target.getAttribute('data-fecha');
+                const operativa = e.target.getAttribute('data-operativa');
+                const nuevaAccion = e.target.value;
+                
+                guardarAccionEditada(fecha, operativa, nuevaAccion);
+            }
+        });
+
+        // ==================== FUNCIONES INFORME MENSUAL ====================
+        
+        async function inicializarInforme() {
+            try {
+                const response = await fetch(`${JSONBIN_CONFIG.apiUrl}/b/${JSONBIN_CONFIG.binId}/latest`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Master-Key': JSONBIN_CONFIG.masterKey,
+                        'X-Bin-Meta': 'false'
+                    }
+                });
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+                const registros = data.record?.registros || data.registros || [];
+                
+                // Obtener semanas únicas
+                const semanas = [...new Set(registros.map(r => r.semana))].filter(s => s).sort((a, b) => b - a);
+                
+                // Poblar los selectores
+                const selectDesde = document.getElementById('informeSemanaDesde');
+                const selectHasta = document.getElementById('informeSemanaHasta');
+                
+                selectDesde.innerHTML = '<option value="">Seleccionar...</option>' + 
+                    semanas.map(s => `<option value="${s}">Semana ${s}</option>`).join('');
+                selectHasta.innerHTML = '<option value="">Seleccionar...</option>' + 
+                    semanas.map(s => `<option value="${s}">Semana ${s}</option>`).join('');
+                
+            } catch (error) {
+                console.error('Error al inicializar informe:', error);
+            }
+        }
+
+        async function generarInforme() {
+            const semanaDesde = parseInt(document.getElementById('informeSemanaDesde').value);
+            const semanaHasta = parseInt(document.getElementById('informeSemanaHasta').value);
+            
+            if (!semanaDesde || !semanaHasta) {
+                alert('Por favor selecciona ambas semanas');
+                return;
+            }
+            
+            if (semanaDesde > semanaHasta) {
+                alert('La semana inicial debe ser menor o igual a la semana final');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${JSONBIN_CONFIG.apiUrl}/b/${JSONBIN_CONFIG.binId}/latest`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Master-Key': JSONBIN_CONFIG.masterKey,
+                        'X-Bin-Meta': 'false'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar registros');
+                }
+
+                const data = await response.json();
+                const registros = data.record?.registros || data.registros || [];
+                
+                // Filtrar por rango de semanas
+                const registrosFiltrados = registros.filter(r => 
+                    r.semana >= semanaDesde && r.semana <= semanaHasta
+                );
+                
+                if (registrosFiltrados.length === 0) {
+                    document.getElementById('informeContainer').innerHTML = `
+                        <div style="text-align: center; padding: 3rem; color: #6b7280;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #f59e0b; margin-bottom: 1rem;"></i>
+                            <h3>Sin datos</h3>
+                            <p>No hay registros en el rango de semanas seleccionado</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Calcular estadísticas
+                const stats = calcularEstadisticasInforme(registrosFiltrados);
+                
+                // Mostrar informe
+                mostrarInforme(stats, semanaDesde, semanaHasta, registrosFiltrados);
+                
+            } catch (error) {
+                console.error('Error al generar informe:', error);
+                alert('Error al generar el informe: ' + error.message);
+            }
+        }
+
+        function calcularEstadisticasInforme(registros) {
+            const stats = {
+                totalOperativas: registros.length,
+                porClasificacion: {},
+                porAccion: {},
+                porAccionTensionadas: {}, // Solo tensionadas
+                porColmena: {},
+                porColmenaTensionadas: {}, // Solo tensionadas
+                clasificacionVsAccion: {}, // Nueva matriz de relación
+                operativasRecurrentes: [],
+                mejorasPorcentuales: {
+                    salida: [],
+                    llegada: []
+                },
+                distribucionSemanal: {}
+            };
+            
+            // Contadores
+            let sumaSalida = 0, sumaLlegadaArea = 0, sumaRetrasoArea = 0, sumaLlegadaHora = 0;
+            let conteoMetricas = 0;
+            
+            // Agrupar por operativa para detectar recurrentes
+            const operativasPorNombre = {};
+            
+            registros.forEach(reg => {
+                // Por clasificación
+                const clasificacion = reg.clasificacion || 'Sin Clasificar';
+                const esTensionada = clasificacion.includes('Tensionada');
+                stats.porClasificacion[clasificacion] = (stats.porClasificacion[clasificacion] || 0) + 1;
+                
+                // Por acción (todos)
+                const accion = reg.accion || 'Sin acción';
+                stats.porAccion[accion] = (stats.porAccion[accion] || 0) + 1;
+                
+                // Por acción (solo tensionadas)
+                if (esTensionada) {
+                    stats.porAccionTensionadas[accion] = (stats.porAccionTensionadas[accion] || 0) + 1;
+                }
+                
+                // Relación Clasificación vs Acción
+                if (!stats.clasificacionVsAccion[clasificacion]) {
+                    stats.clasificacionVsAccion[clasificacion] = {};
+                }
+                stats.clasificacionVsAccion[clasificacion][accion] = 
+                    (stats.clasificacionVsAccion[clasificacion][accion] || 0) + 1;
+                
+                // Por colmena (todos)
+                const colmena = reg.colmena || 'Sin colmena';
+                stats.porColmena[colmena] = (stats.porColmena[colmena] || 0) + 1;
+                
+                // Por colmena (solo tensionadas)
+                if (esTensionada) {
+                    stats.porColmenaTensionadas[colmena] = (stats.porColmenaTensionadas[colmena] || 0) + 1;
+                }
+                
+                // Distribución semanal
+                const semana = reg.semana || 0;
+                if (!stats.distribucionSemanal[semana]) {
+                    stats.distribucionSemanal[semana] = {
+                        total: 0,
+                        tensionadas: 0,
+                        conHolgura: 0
+                    };
+                }
+                stats.distribucionSemanal[semana].total++;
+                if (clasificacion.includes('Tensionada')) {
+                    stats.distribucionSemanal[semana].tensionadas++;
+                }
+                if (clasificacion.includes('Holgura')) {
+                    stats.distribucionSemanal[semana].conHolgura++;
+                }
+                
+                // Operativas recurrentes
+                if (!operativasPorNombre[reg.operativa]) {
+                    operativasPorNombre[reg.operativa] = [];
+                }
+                operativasPorNombre[reg.operativa].push(reg);
+                
+                // Métricas
+                if (reg.metricas) {
+                    const salida = parseFloat(reg.metricas.porcSalidaEnHora?.replace(',', '.')) || 0;
+                    const llegadaHora = parseFloat(reg.metricas.porcLlegadaEnHora?.replace(',', '.')) || 0;
+                    
+                    if (salida > 0) {
+                        stats.mejorasPorcentuales.salida.push(salida);
+                        stats.mejorasPorcentuales.llegada.push(llegadaHora);
+                    }
+                }
+            });
+            
+            // Detectar operativas recurrentes (aparecen más de 1 vez)
+            Object.entries(operativasPorNombre).forEach(([nombre, apariciones]) => {
+                if (apariciones.length > 1) {
+                    stats.operativasRecurrentes.push({
+                        operativa: nombre,
+                        veces: apariciones.length,
+                        semanas: apariciones.map(a => a.semana).sort((a, b) => a - b),
+                        clasificaciones: apariciones.map(a => a.clasificacion),
+                        acciones: apariciones.map(a => a.accion || 'Sin acción')
+                    });
+                }
+            });
+            
+            // Ordenar recurrentes por número de apariciones
+            stats.operativasRecurrentes.sort((a, b) => b.veces - a.veces);
+            
+            return stats;
+        }
+
+        function mostrarInforme(stats, semanaDesde, semanaHasta, registros) {
+            const container = document.getElementById('informeContainer');
+            
+            const html = `
+                <!-- Relación Clasificación vs Acciones -->
+                <div style="background: #1f2937; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem;">
+                    <h3 style="color: #f9fafb; font-size: 1.125rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-network-wired"></i>
+                        Relación: Clasificación → Acciones Tomadas
+                    </h3>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #374151;">
+                                    <th style="padding: 0.75rem; text-align: left; color: #f9fafb; font-size: 0.875rem; border: 1px solid #4b5563;">Clasificación</th>
+                                    <th style="padding: 0.75rem; text-align: center; color: #f9fafb; font-size: 0.875rem; border: 1px solid #4b5563;">Ajuste tiempo</th>
+                                    <th style="padding: 0.75rem; text-align: center; color: #f9fafb; font-size: 0.875rem; border: 1px solid #4b5563;">Ajuste productividad</th>
+                                    <th style="padding: 0.75rem; text-align: center; color: #f9fafb; font-size: 0.875rem; border: 1px solid #4b5563;">Ajuste prod/tiempo</th>
+                                    <th style="padding: 0.75rem; text-align: center; color: #f9fafb; font-size: 0.875rem; border: 1px solid #4b5563;">Sin acción</th>
+                                    <th style="padding: 0.75rem; text-align: center; color: #f9fafb; font-size: 0.875rem; border: 1px solid #4b5563;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.entries(stats.clasificacionVsAccion).map(([clasificacion, acciones]) => {
+                                    const total = Object.values(acciones).reduce((sum, val) => sum + val, 0);
+                                    return `
+                                        <tr style="border-bottom: 1px solid #374151;">
+                                            <td style="padding: 0.75rem; color: #e5e7eb; font-size: 0.875rem; border: 1px solid #4b5563;">
+                                                <span class="status-badge ${getStatusClass(clasificacion)}" style="font-size: 0.75rem;">${clasificacion}</span>
+                                            </td>
+                                            <td style="padding: 0.75rem; text-align: center; color: #d1d5db; font-size: 0.875rem; border: 1px solid #4b5563;">
+                                                ${acciones['Ajuste tiempo'] || 0} ${acciones['Ajuste tiempo'] ? `<span style="font-size: 0.75rem; color: #9ca3af;">(${((acciones['Ajuste tiempo']/total)*100).toFixed(0)}%)</span>` : ''}
+                                            </td>
+                                            <td style="padding: 0.75rem; text-align: center; color: #d1d5db; font-size: 0.875rem; border: 1px solid #4b5563;">
+                                                ${acciones['Ajuste productividad'] || 0} ${acciones['Ajuste productividad'] ? `<span style="font-size: 0.75rem; color: #9ca3af;">(${((acciones['Ajuste productividad']/total)*100).toFixed(0)}%)</span>` : ''}
+                                            </td>
+                                            <td style="padding: 0.75rem; text-align: center; color: #d1d5db; font-size: 0.875rem; border: 1px solid #4b5563;">
+                                                ${acciones['Ajuste productividad/tiempo'] || 0} ${acciones['Ajuste productividad/tiempo'] ? `<span style="font-size: 0.75rem; color: #9ca3af;">(${((acciones['Ajuste productividad/tiempo']/total)*100).toFixed(0)}%)</span>` : ''}
+                                            </td>
+                                            <td style="padding: 0.75rem; text-align: center; color: #d1d5db; font-size: 0.875rem; border: 1px solid #4b5563;">
+                                                ${acciones['Sin acción'] || 0} ${acciones['Sin acción'] ? `<span style="font-size: 0.75rem; color: #9ca3af;">(${((acciones['Sin acción']/total)*100).toFixed(0)}%)</span>` : ''}
+                                            </td>
+                                            <td style="padding: 0.75rem; text-align: center; color: #f9fafb; font-weight: 600; font-size: 0.875rem; border: 1px solid #4b5563; background: #374151;">
+                                                ${total}
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Evolución Semanal - Gráfico de Línea -->
+                <div style="background: #1f2937; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem;">
+                    <h3 style="color: #f9fafb; font-size: 1.125rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-chart-line"></i>
+                        Evolución de Operativas Tensionadas
+                    </h3>
+                    ${generarGraficoLinea(stats.distribucionSemanal)}
+                </div>
+
+                <!-- Gráficos -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <!-- Por Clasificación - Solo Tensionadas -->
+                    <div style="background: #1f2937; padding: 1.5rem; border-radius: 0.5rem;">
+                        <h3 style="color: #f9fafb; font-size: 1.125rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Tipos de Tensionadas
+                        </h3>
+                        ${Object.entries(stats.porClasificacion)
+                            .filter(([clasificacion]) => clasificacion.includes('Tensionada'))
+                            .map(([clasificacion, count]) => {
+                                const totalTensionadas = Object.entries(stats.porClasificacion)
+                                    .filter(([c]) => c.includes('Tensionada'))
+                                    .reduce((sum, [_, cnt]) => sum + cnt, 0);
+                                return `
+                                    <div style="margin-bottom: 0.75rem;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.875rem; color: #d1d5db;">
+                                            <span>${clasificacion}</span>
+                                            <span>${count} (${((count / totalTensionadas) * 100).toFixed(1)}%)</span>
+                                        </div>
+                                        <div style="width: 100%; height: 8px; background: #374151; border-radius: 4px; overflow: hidden;">
+                                            <div style="width: ${(count / totalTensionadas) * 100}%; height: 100%; background: #ef4444; transition: width 0.3s;"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        ${Object.entries(stats.porClasificacion).filter(([c]) => c.includes('Tensionada')).length === 0 ? 
+                            '<div style="text-align: center; padding: 2rem; color: #9ca3af; font-size: 0.875rem;">No hay operativas tensionadas en este período</div>' : ''}
+                    </div>
+
+                    <!-- Por Acción - Solo Tensionadas -->
+                    <div style="background: #1f2937; padding: 1.5rem; border-radius: 0.5rem;">
+                        <h3 style="color: #f9fafb; font-size: 1.125rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-tasks"></i>
+                            Acciones en Tensionadas
+                        </h3>
+                        ${Object.entries(stats.porAccionTensionadas).length > 0 ? 
+                            Object.entries(stats.porAccionTensionadas).map(([accion, count]) => {
+                                const totalAcciones = Object.values(stats.porAccionTensionadas).reduce((sum, val) => sum + val, 0);
+                                return `
+                                    <div style="margin-bottom: 0.75rem;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.875rem; color: #d1d5db;">
+                                            <span>${accion}</span>
+                                            <span>${count} (${((count / totalAcciones) * 100).toFixed(1)}%)</span>
+                                        </div>
+                                        <div style="width: 100%; height: 8px; background: #374151; border-radius: 4px; overflow: hidden;">
+                                            <div style="width: ${(count / totalAcciones) * 100}%; height: 100%; background: #3b82f6; transition: width 0.3s;"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')
+                            : '<div style="text-align: center; padding: 2rem; color: #9ca3af; font-size: 0.875rem;">No hay operativas tensionadas en este período</div>'
+                        }
+                    </div>
+                </div>
+
+                <!-- Por Colmena - Solo Tensionadas -->
+                <div style="background: #1f2937; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem;">
+                    <h3 style="color: #f9fafb; font-size: 1.125rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-building"></i>
+                        Tensionadas por Colmena
+                    </h3>
+                    ${Object.entries(stats.porColmenaTensionadas).length > 0 ?
+                        `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            ${Object.entries(stats.porColmenaTensionadas).map(([colmena, count]) => {
+                                const totalTensionadas = Object.values(stats.porColmenaTensionadas).reduce((sum, val) => sum + val, 0);
+                                return `
+                                    <div style="text-align: center; padding: 1rem; background: #374151; border-radius: 0.375rem;">
+                                        <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444; margin-bottom: 0.5rem;">${count}</div>
+                                        <div style="font-size: 0.875rem; color: #d1d5db;">${colmena.toUpperCase()}</div>
+                                        <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">${((count / totalTensionadas) * 100).toFixed(1)}%</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>`
+                        : '<div style="text-align: center; padding: 2rem; color: #9ca3af; font-size: 0.875rem;">No hay operativas tensionadas en este período</div>'
+                    }
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function generarGraficoLinea(distribucionSemanal) {
+            const semanas = Object.keys(distribucionSemanal).map(s => parseInt(s)).sort((a, b) => a - b);
+            const datos = semanas.map(s => distribucionSemanal[s].tensionadas);
+            
+            const maxValor = Math.max(...datos);
+            const alturaGrafico = 250;
+            const anchoTotal = 800;
+            const margenIzq = 40;
+            const margenDer = 20;
+            const margenArriba = 20;
+            const margenAbajo = 40;
+            
+            const anchoDisponible = anchoTotal - margenIzq - margenDer;
+            const alturaDisponible = alturaGrafico - margenArriba - margenAbajo;
+            const espacioEntrePuntos = anchoDisponible / (semanas.length - 1 || 1);
+            
+            // Generar puntos del gráfico
+            const puntos = semanas.map((semana, i) => {
+                const x = margenIzq + (i * espacioEntrePuntos);
+                const y = margenArriba + alturaDisponible - ((datos[i] / maxValor) * alturaDisponible);
+                return { x, y, valor: datos[i], semana };
+            });
+            
+            // Generar path de la línea
+            const pathData = puntos.map((p, i) => 
+                `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`
+            ).join(' ');
+            
+            return `
+                <div style="position: relative; width: 100%; padding: 1rem; background: #111827; border-radius: 0.5rem;">
+                    <svg width="100%" height="${alturaGrafico}" viewBox="0 0 ${anchoTotal} ${alturaGrafico}" style="overflow: visible;">
+                        <!-- Líneas de fondo (grid) -->
+                        ${[0, 0.25, 0.5, 0.75, 1].map(factor => {
+                            const y = margenArriba + alturaDisponible * (1 - factor);
+                            const valor = Math.round(maxValor * factor);
+                            return `
+                                <line x1="${margenIzq}" y1="${y}" x2="${anchoTotal - margenDer}" y2="${y}" 
+                                      stroke="#374151" stroke-width="1" stroke-dasharray="4,4"/>
+                                <text x="${margenIzq - 10}" y="${y + 4}" fill="#9ca3af" font-size="12" text-anchor="end">${valor}</text>
+                            `;
+                        }).join('')}
+                        
+                        <!-- Línea principal -->
+                        <path d="${pathData}" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        
+                        <!-- Área bajo la línea -->
+                        <path d="${pathData} L ${puntos[puntos.length-1].x} ${margenArriba + alturaDisponible} L ${margenIzq} ${margenArriba + alturaDisponible} Z" 
+                              fill="url(#gradient)" opacity="0.2"/>
+                        
+                        <!-- Puntos -->
+                        ${puntos.map(p => `
+                            <circle cx="${p.x}" cy="${p.y}" r="5" fill="#ef4444" stroke="#1f2937" stroke-width="2"/>
+                            <circle cx="${p.x}" cy="${p.y}" r="8" fill="transparent" class="hover-point" style="cursor: pointer;">
+                                <title>Semana ${p.semana}: ${p.valor} tensionadas</title>
+                            </circle>
+                        `).join('')}
+                        
+                        <!-- Etiquetas del eje X -->
+                        ${puntos.map(p => `
+                            <text x="${p.x}" y="${alturaGrafico - 15}" fill="#d1d5db" font-size="12" text-anchor="middle">S${p.semana}</text>
+                            <text x="${p.x}" y="${p.y - 15}" fill="#ef4444" font-size="11" font-weight="600" text-anchor="middle">${p.valor}</text>
+                        `).join('')}
+                        
+                        <!-- Gradiente -->
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.6" />
+                                <stop offset="100%" style="stop-color:#ef4444;stop-opacity:0" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    
+                    <div style="text-align: center; margin-top: 0.5rem; color: #9ca3af; font-size: 0.75rem;">
+                        Eje Y: Número de operativas tensionadas | Eje X: Semanas
+                    </div>
+                </div>
+            `;
+        }
+
+        // Event listeners para los botones del registro - usar setTimeout para asegurar que existan
+        setTimeout(() => {
+            const saveBtn = document.getElementById('saveRegistroBtn');
+            const reloadBtn = document.getElementById('reloadRegistroBtn');
+            const filtroSemana = document.getElementById('filtroSemana');
+            const filtroColmena = document.getElementById('filtroColmena');
+            const filtroArea = document.getElementById('filtroArea');
+            const limpiarBtn = document.getElementById('limpiarFiltrosBtn');
+            const generarInformeBtn = document.getElementById('generarInformeBtn');
+            
+            if (saveBtn) saveBtn.addEventListener('click', saveRegistroToJsonBin);
+            if (reloadBtn) reloadBtn.addEventListener('click', () => loadRegistro(false));
+            if (filtroSemana) filtroSemana.addEventListener('change', () => loadRegistro(true));
+            if (filtroColmena) filtroColmena.addEventListener('change', () => loadRegistro(true));
+            if (filtroArea) filtroArea.addEventListener('change', () => loadRegistro(true));
+            if (limpiarBtn) {
+                limpiarBtn.addEventListener('click', () => {
+                    if (filtroSemana) filtroSemana.value = '';
+                    if (filtroColmena) filtroColmena.value = '';
+                    if (filtroArea) filtroArea.value = '';
+                    loadRegistro(true);
+                });
+            }
+            if (generarInformeBtn) {
+                generarInformeBtn.addEventListener('click', generarInforme);
+            }
+        }, 100);
 
         // Función para descargar Excel del Registro
         document.getElementById('downloadRegistroExcelBtn').addEventListener('click', async function() {
