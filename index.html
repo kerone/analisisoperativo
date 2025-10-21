@@ -5232,59 +5232,24 @@ Solución:
                     ${generarGraficoLinea(stats.distribucionSemanal)}
                 </div>
 
-                <!-- Gráficos -->
+                <!-- Gráficos de Dona: Acciones por Tipo de Tensionada -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                    <!-- Por Clasificación - Solo Tensionadas -->
+                    <!-- Tensionada Llegada -->
                     <div style="background: #1f2937; padding: 1.5rem; border-radius: 0.5rem;">
                         <h3 style="color: #f9fafb; font-size: 1.125rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Tipos de Tensionadas
+                            <i class="fas fa-clock" style="color: #f59e0b;"></i>
+                            Tensionada Llegada → Acciones
                         </h3>
-                        ${Object.entries(stats.porClasificacion)
-                            .filter(([clasificacion]) => clasificacion.includes('Tensionada'))
-                            .map(([clasificacion, count]) => {
-                                const totalTensionadas = Object.entries(stats.porClasificacion)
-                                    .filter(([c]) => c.includes('Tensionada'))
-                                    .reduce((sum, [_, cnt]) => sum + cnt, 0);
-                                return `
-                                    <div style="margin-bottom: 0.75rem;">
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.875rem; color: #d1d5db;">
-                                            <span>${clasificacion}</span>
-                                            <span>${count} (${((count / totalTensionadas) * 100).toFixed(1)}%)</span>
-                                        </div>
-                                        <div style="width: 100%; height: 8px; background: #374151; border-radius: 4px; overflow: hidden;">
-                                            <div style="width: ${(count / totalTensionadas) * 100}%; height: 100%; background: #ef4444; transition: width 0.3s;"></div>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        ${Object.entries(stats.porClasificacion).filter(([c]) => c.includes('Tensionada')).length === 0 ? 
-                            '<div style="text-align: center; padding: 2rem; color: #9ca3af; font-size: 0.875rem;">No hay operativas tensionadas en este período</div>' : ''}
+                        ${generarGraficoDona(stats.clasificacionVsAccion['Tensionada Llegada'], 'Tensionada Llegada')}
                     </div>
 
-                    <!-- Por Acción - Solo Tensionadas -->
+                    <!-- Tensionada Retrasos -->
                     <div style="background: #1f2937; padding: 1.5rem; border-radius: 0.5rem;">
                         <h3 style="color: #f9fafb; font-size: 1.125rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-tasks"></i>
-                            Acciones en Tensionadas
+                            <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                            Tensionada Retrasos → Acciones
                         </h3>
-                        ${Object.entries(stats.porAccionTensionadas).length > 0 ? 
-                            Object.entries(stats.porAccionTensionadas).map(([accion, count]) => {
-                                const totalAcciones = Object.values(stats.porAccionTensionadas).reduce((sum, val) => sum + val, 0);
-                                return `
-                                    <div style="margin-bottom: 0.75rem;">
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.875rem; color: #d1d5db;">
-                                            <span>${accion}</span>
-                                            <span>${count} (${((count / totalAcciones) * 100).toFixed(1)}%)</span>
-                                        </div>
-                                        <div style="width: 100%; height: 8px; background: #374151; border-radius: 4px; overflow: hidden;">
-                                            <div style="width: ${(count / totalAcciones) * 100}%; height: 100%; background: #3b82f6; transition: width 0.3s;"></div>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')
-                            : '<div style="text-align: center; padding: 2rem; color: #9ca3af; font-size: 0.875rem;">No hay operativas tensionadas en este período</div>'
-                        }
+                        ${generarGraficoDona(stats.clasificacionVsAccion['Tensionada Retrasos'], 'Tensionada Retrasos')}
                     </div>
                 </div>
 
@@ -5298,11 +5263,12 @@ Solución:
                         `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
                             ${Object.entries(stats.porColmenaTensionadas).map(([colmena, count]) => {
                                 const totalTensionadas = Object.values(stats.porColmenaTensionadas).reduce((sum, val) => sum + val, 0);
+                                const porcentaje = ((count / totalTensionadas) * 100).toFixed(1);
                                 return `
                                     <div style="text-align: center; padding: 1rem; background: #374151; border-radius: 0.375rem;">
-                                        <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444; margin-bottom: 0.5rem;">${count}</div>
-                                        <div style="font-size: 0.875rem; color: #d1d5db;">${colmena.toUpperCase()}</div>
-                                        <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">${((count / totalTensionadas) * 100).toFixed(1)}%</div>
+                                        <div style="font-size: 2.5rem; font-weight: 700; color: #ef4444; margin-bottom: 0.25rem;">${porcentaje}%</div>
+                                        <div style="font-size: 0.875rem; color: #d1d5db; margin-bottom: 0.25rem;">${colmena.toUpperCase()}</div>
+                                        <div style="font-size: 0.75rem; color: #9ca3af;">${count} casos</div>
                                     </div>
                                 `;
                             }).join('')}
@@ -5389,6 +5355,123 @@ Solución:
                     
                     <div style="text-align: center; margin-top: 0.5rem; color: #9ca3af; font-size: 0.75rem;">
                         Eje Y: Número de operativas tensionadas | Eje X: Semanas
+                    </div>
+                </div>
+            `;
+        }
+
+        function generarGraficoDona(acciones, tipoTensionada) {
+            if (!acciones || Object.keys(acciones).length === 0) {
+                return `<div style="text-align: center; padding: 3rem; color: #9ca3af; font-size: 0.875rem;">No hay datos de ${tipoTensionada} en este período</div>`;
+            }
+            
+            const total = Object.values(acciones).reduce((sum, val) => sum + val, 0);
+            const colores = {
+                'Ajuste tiempo': '#3b82f6',
+                'Ajuste productividad': '#10b981',
+                'Ajuste productividad/tiempo': '#8b5cf6',
+                'Sin acción': '#6b7280'
+            };
+            
+            // Calcular ángulos para cada segmento
+            let anguloActual = -90; // Empezar desde arriba
+            const segmentos = Object.entries(acciones).map(([accion, count]) => {
+                const porcentaje = (count / total) * 100;
+                const angulo = (count / total) * 360;
+                const anguloInicio = anguloActual;
+                const anguloMedio = anguloActual + (angulo / 2);
+                anguloActual += angulo;
+                
+                return {
+                    accion,
+                    count,
+                    porcentaje,
+                    anguloInicio,
+                    anguloFin: anguloActual,
+                    anguloMedio,
+                    color: colores[accion] || '#6b7280'
+                };
+            });
+            
+            // Función para calcular coordenadas de arco SVG
+            const polarACartesiano = (centroX, centroY, radio, angulo) => {
+                const radianes = (angulo - 90) * Math.PI / 180.0;
+                return {
+                    x: centroX + (radio * Math.cos(radianes)),
+                    y: centroY + (radio * Math.sin(radianes))
+                };
+            };
+            
+            const descripcionArco = (x, y, radio, anguloInicio, anguloFin) => {
+                const inicio = polarACartesiano(x, y, radio, anguloFin);
+                const fin = polarACartesiano(x, y, radio, anguloInicio);
+                const largeArcFlag = anguloFin - anguloInicio <= 180 ? "0" : "1";
+                
+                return [
+                    "M", inicio.x, inicio.y,
+                    "A", radio, radio, 0, largeArcFlag, 0, fin.x, fin.y,
+                    "L", x, y,
+                    "Z"
+                ].join(" ");
+            };
+            
+            const centroX = 150;
+            const centroY = 150;
+            const radioExterno = 120;
+            const radioInterno = 70;
+            const radioEtiqueta = 95;
+            
+            return `
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <!-- Gráfico de Dona -->
+                    <svg width="300" height="300" viewBox="0 0 300 300" style="margin-bottom: 1rem;">
+                        ${segmentos.map(seg => {
+                            // Calcular posición de la etiqueta de porcentaje
+                            const posEtiqueta = polarACartesiano(centroX, centroY, radioEtiqueta, seg.anguloMedio);
+                            return `
+                            <g>
+                                <!-- Segmento externo -->
+                                <path d="${descripcionArco(centroX, centroY, radioExterno, seg.anguloInicio, seg.anguloFin)}"
+                                      fill="${seg.color}" opacity="0.9" stroke="#1f2937" stroke-width="2">
+                                    <title>${seg.accion}: ${seg.count} (${seg.porcentaje.toFixed(1)}%)</title>
+                                </path>
+                                
+                                <!-- Etiqueta de porcentaje en el segmento -->
+                                ${seg.porcentaje >= 8 ? `
+                                    <text x="${posEtiqueta.x}" y="${posEtiqueta.y}" 
+                                          text-anchor="middle" 
+                                          fill="#ffffff" 
+                                          font-size="14" 
+                                          font-weight="700"
+                                          style="pointer-events: none;">
+                                        ${seg.porcentaje.toFixed(0)}%
+                                    </text>
+                                ` : ''}
+                            </g>
+                        `}).join('')}
+                        
+                        <!-- Agujero interno para efecto dona -->
+                        <circle cx="${centroX}" cy="${centroY}" r="${radioInterno}" fill="#1f2937"/>
+                        
+                        <!-- Texto central con porcentaje del total de tensionadas -->
+                        <text x="${centroX}" y="${centroY - 10}" text-anchor="middle" fill="#f9fafb" font-size="32" font-weight="700">${total}</text>
+                        <text x="${centroX}" y="${centroY + 15}" text-anchor="middle" fill="#9ca3af" font-size="14">casos</text>
+                    </svg>
+                    
+                    <!-- Leyenda -->
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem; width: 100%;">
+                        ${segmentos.map(seg => `
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: #374151; border-radius: 0.375rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="width: 12px; height: 12px; background: ${seg.color}; border-radius: 2px;"></div>
+                                    <span style="font-size: 0.875rem; color: #d1d5db;">${seg.accion}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="font-size: 0.875rem; font-weight: 600; color: #f9fafb;">${seg.count}</span>
+                                    <span style="font-size: 0.75rem; color: #9ca3af; min-width: 45px; text-align: right;">${seg.porcentaje.toFixed(1)}%</span>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             `;
