@@ -1847,13 +1847,14 @@
                 icon.className = 'fas fa-chevron-right';
                 toggleButton.title = 'Desplegar menú';
             } else {
-                sidebar.classList.remove('collapsed');
-                mainContent.classList.remove('sidebar-collapsed');
-                sidebarCollapsed = false;
+                // En escritorio, mantener el estado collapsed inicial
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('sidebar-collapsed');
+                sidebarCollapsed = true;
                 
                 const icon = toggleButton.querySelector('i');
-                icon.className = 'fas fa-chevron-left';
-                toggleButton.title = 'Plegar menú';
+                icon.className = 'fas fa-chevron-right';
+                toggleButton.title = 'Desplegar menú';
             }
         }
 
