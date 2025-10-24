@@ -3252,8 +3252,8 @@
                                       data-llegada-area="${infoRepetida.metricas?.porcLlegadaArea || 'N/A'}"
                                       data-retraso-area="${infoRepetida.metricas?.porcRetrasoEnArea || 'N/A'}"
                                       data-llegada-hora="${infoRepetida.metricas?.porcLlegadaEnHora || 'N/A'}"
-                                      style="display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; padding: 5px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.3px; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3); cursor: help;">
-                                    <i class="fas fa-history" style="font-size: 0.65rem;"></i> REPETIDA
+                                      style="display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; padding: 6px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3); cursor: help;">
+                                    <i class="fas fa-history"></i>
                                 </span>` 
                                 : '<span style="color: #6b7280; font-size: 0.75rem;">—</span>'}
                         </td>
@@ -4383,6 +4383,10 @@
                             const comment = operativeComments[result.operativa];
                             if (comment && comment.trim()) {
                                 const action = operativeActions[result.operativa] || '';
+                                
+                                // Obtener información de operativa repetida
+                                const infoRepetida = operativasRepetidas[result.operativa] || { esRepetida: false };
+                                
                                 registros.push({
                                     operativa: result.operativa,
                                     colmena: extractColmena(result.operativa),
@@ -4392,6 +4396,15 @@
                                     fechaFormateada: new Date().toLocaleDateString('es-ES'),
                                     semana: numeroSemana,
                                     clasificacion: result.accion,
+                                    // Información de operativa repetida
+                                    esRepetida: infoRepetida.esRepetida,
+                                    infoRepetida: infoRepetida.esRepetida ? {
+                                        fechaAnterior: infoRepetida.fecha,
+                                        semanaAnterior: infoRepetida.semana,
+                                        comentarioAnterior: infoRepetida.comentario,
+                                        accionAnterior: infoRepetida.accion,
+                                        metricasAnteriores: infoRepetida.metricas
+                                    } : null,
                                     metricas: {
                                         rutasDia: result.rutasDia,
                                         dias: result.dias,
@@ -4613,6 +4626,7 @@
                                     <th style="padding: 12px; text-align: left; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563; width: 60px;">Acción</th>
                                     <th style="padding: 12px; text-align: left; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563;">Fecha / Semana</th>
                                     <th style="padding: 12px; text-align: left; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563;">Operativa</th>
+                                    <th style="padding: 12px; text-align: center; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563; width: 100px;">Repetida</th>
                                     <th style="padding: 12px; text-align: left; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563;">Rutas/Día</th>
                                     <th style="padding: 12px; text-align: left; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563;">Días</th>
                                     <th style="padding: 12px; text-align: left; color: #f9fafb; font-weight: 600; border-bottom: 2px solid #4b5563;">Col/Ruta</th>
@@ -4637,6 +4651,11 @@
                                     // Crear un ID único basado en la fecha y operativa
                                     const registroId = `${reg.fecha}_${reg.operativa}`.replace(/[^a-zA-Z0-9]/g, '_');
                                     
+                                    // Preparar tooltip para operativa repetida
+                                    const tooltipRepetida = reg.esRepetida && reg.infoRepetida ? 
+                                        `Anterior: ${reg.infoRepetida.fechaAnterior || 'N/A'} (Semana ${reg.infoRepetida.semanaAnterior || 'N/A'})\\nComentario: ${(reg.infoRepetida.comentarioAnterior || 'Sin comentario').replace(/"/g, '&quot;')}\\nAcción: ${reg.infoRepetida.accionAnterior || 'Sin acción'}` 
+                                        : '';
+                                    
                                     return `
                                         <tr id="row_${registroId}" style="border-bottom: 1px solid #374151; transition: background 0.2s;" 
                                             onmouseover="this.style.background='rgba(55, 65, 81, 0.3)'" 
@@ -4652,6 +4671,15 @@
                                                 ${reg.semana ? `<br><span style="color: #9ca3af; font-size: 0.75rem;">Semana ${reg.semana}</span>` : ''}
                                             </td>
                                             <td style="padding: 12px; color: #e5e7eb; font-size: 0.875rem;">${reg.operativa || 'Sin operativa'}</td>
+                                            <td style="padding: 12px; text-align: center;">
+                                                ${reg.esRepetida ? 
+                                                    `<span class="repetida-badge-registro" 
+                                                          title="${tooltipRepetida}"
+                                                          style="display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; padding: 6px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: help;">
+                                                        <i class="fas fa-history"></i>
+                                                    </span>` 
+                                                    : '<span style="color: #6b7280; font-size: 0.75rem;">—</span>'}
+                                            </td>
                                             <td style="padding: 12px; color: #e5e7eb; font-size: 0.875rem; text-align: center;">${formatValue(reg.metricas?.rutasDia)}</td>
                                             <td style="padding: 12px; color: #e5e7eb; font-size: 0.875rem; text-align: center;">${formatValue(reg.metricas?.dias)}</td>
                                             <td style="padding: 12px; color: #e5e7eb; font-size: 0.875rem; text-align: center;">${formatValue(reg.metricas?.colPorRuta)}</td>
@@ -5623,6 +5651,11 @@ Solución:
                 const excelData = registros.map(reg => ({
                     'Colmena': reg.colmena || extractColmena(reg.operativa) || '',
                     'Operativa': reg.operativa || '',
+                    'Repetida': reg.esRepetida ? 'SÍ' : 'NO',
+                    'Fecha Anterior': reg.esRepetida && reg.infoRepetida ? reg.infoRepetida.fechaAnterior : '',
+                    'Semana Anterior': reg.esRepetida && reg.infoRepetida ? reg.infoRepetida.semanaAnterior : '',
+                    'Comentario Anterior': reg.esRepetida && reg.infoRepetida ? reg.infoRepetida.comentarioAnterior : '',
+                    'Acción Anterior': reg.esRepetida && reg.infoRepetida ? reg.infoRepetida.accionAnterior : '',
                     'Rutas por Día': formatValue(reg.metricas?.rutasDia),
                     'Días': formatValue(reg.metricas?.dias),
                     'Columnas por Ruta': formatValue(reg.metricas?.colPorRuta),
@@ -5655,6 +5688,11 @@ Solución:
                 const columnWidths = [
                     { wch: 10 }, // Colmena
                     { wch: 25 }, // Operativa
+                    { wch: 10 }, // Repetida
+                    { wch: 15 }, // Fecha Anterior
+                    { wch: 12 }, // Semana Anterior
+                    { wch: 40 }, // Comentario Anterior
+                    { wch: 30 }, // Acción Anterior
                     { wch: 12 }, // Rutas por Día
                     { wch: 8 },  // Días
                     { wch: 15 }, // Columnas por Ruta
