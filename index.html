@@ -2362,10 +2362,11 @@
                     
                     // ANÁLISIS AUTOMÁTICO: Analizar todas las operativas inmediatamente
                     setTimeout(() => {
-                        const analysisResults = results.data.map(row => analyzeDelay(row));
-                        displayResults(analysisResults, datasetIndex);
-                        console.log(`Análisis automático completado para ${fileName}`);
-                    }, 100);
+    const analysisResults = results.data.map(row => analyzeDelay(row));
+    analysisResultsByDataset[datasetIndex] = analysisResults;  // ← LÍNEA NUEVA
+    displayResults(analysisResults, datasetIndex);
+    console.log(`Análisis automático completado para ${fileName} con umbrales: TR≤${tensionadaRetrasosThreshold}%, TL≤${tensionadaLlegadaThreshold}%, H≥${holguraThreshold}%`);
+}, 100);
                 }
             });
         }
@@ -4111,33 +4112,48 @@
         });
 
         document.getElementById('applyThreshold').addEventListener('click', function() {
-            tensionadaRetrasosThreshold = parseInt(document.getElementById('tensionadaRetrasosInput').value);
-            tensionadaLlegadaThreshold = parseInt(document.getElementById('tensionadaLlegadaInput').value);
-            holguraThreshold = parseInt(document.getElementById('holguraInput').value);
-            
-            let hasResults = false;
-            datasets.forEach((data, index) => {
-                if (data && selectedOperativesByDataset[index].size > 0) {
-                    const selectedData = Array.from(selectedOperativesByDataset[index]).map(idx => data[idx]);
-                    const results = selectedData.map(row => analyzeDelay(row));
-                    analysisResultsByDataset[index] = results;
-                    hasResults = true;
-                }
-            });
-            
-            if (hasResults && analysisResultsByDataset[currentActiveDataset].length > 0) {
-                displayResults(analysisResultsByDataset[currentActiveDataset], currentActiveDataset);
-            }
-            
-            showDatasetTabs();
-            
-            this.innerHTML = '<i class="fas fa-check"></i> Configuración Aplicada';
-            this.disabled = true;
-            
-            setTimeout(() => {
-                this.innerHTML = '<i class="fas fa-save"></i> Aplicar Configuración';
-            }, 2000);
-        });
+    // Actualizar los valores de los umbrales
+    tensionadaRetrasosThreshold = parseInt(document.getElementById('tensionadaRetrasosInput').value);
+    tensionadaLlegadaThreshold = parseInt(document.getElementById('tensionadaLlegadaInput').value);
+    holguraThreshold = parseInt(document.getElementById('holguraInput').value);
+    
+    console.log(`Aplicando nuevos umbrales: TR≤${tensionadaRetrasosThreshold}%, TL≤${tensionadaLlegadaThreshold}%, H≥${holguraThreshold}%`);
+    
+    // Re-analizar TODOS los datasets cargados (no solo las selecciones)
+    let hasResults = false;
+    datasets.forEach((data, index) => {
+        if (data && data.length > 0) {
+            console.log(`Re-analizando dataset ${index} (${datasetNames[index]}) con ${data.length} operativas`);
+            // Re-analizar TODAS las operativas del dataset con los nuevos umbrales
+            const results = data.map(row => analyzeDelay(row));
+            analysisResultsByDataset[index] = results;
+            hasResults = true;
+        }
+    });
+    
+    // Mostrar los resultados del dataset activo
+    if (hasResults && analysisResultsByDataset[currentActiveDataset] && analysisResultsByDataset[currentActiveDataset].length > 0) {
+        displayResults(analysisResultsByDataset[currentActiveDataset], currentActiveDataset);
+        console.log(`Mostrando resultados del dataset ${currentActiveDataset} con ${analysisResultsByDataset[currentActiveDataset].length} operativas`);
+    }
+    
+    // Actualizar las pestañas para reflejar los nuevos análisis
+    showDatasetTabs();
+    
+    // Actualizar la información de umbrales en la UI
+    updateThresholdInfo();
+    
+    // Feedback visual
+    this.innerHTML = '<i class="fas fa-check"></i> Configuración Aplicada ✓';
+    this.disabled = true;
+    this.style.background = '#059669';
+    
+    setTimeout(() => {
+        this.innerHTML = '<i class="fas fa-save"></i> Aplicar Configuración';
+        this.disabled = false;
+        this.style.background = '';
+    }, 3000);
+});
 
         // Download
 
