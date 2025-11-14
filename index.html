@@ -4408,85 +4408,35 @@ async function saveRegistroToJsonBin() {
         const fechaActual = new Date();
         const numeroSemana = getWeekNumber(fechaActual);
         
-        // Verificar TODAS las operativas repetidas de una vez ANTES de guardar
-        let todasLasOperativas = [];
-        datasets.forEach((data, index) => {
-            if (data && analysisResultsByDataset[index] && analysisResultsByDataset[index].length > 0) {
-                analysisResultsByDataset[index].forEach(result => {
-                    todasLasOperativas.push(result);
-                });
-            }
-        });
+        console.log('=== INICIANDO GUARDADO ===');
+        console.log('Semana actual:', numeroSemana);
         
-        // Obtener información de repetidas
-        const operativasRepetidasInfo = await verificarTodasOperativasRepetidas(todasLasOperativas, numeroSemana);
-        
+        // PASO 1: Recopilar todas las operativas que tienen comentarios
+        let operativasConComentarios = [];
         datasets.forEach((data, index) => {
             if (data && analysisResultsByDataset[index] && analysisResultsByDataset[index].length > 0) {
                 analysisResultsByDataset[index].forEach(result => {
                     const comment = operativeComments[result.operativa];
                     if (comment && comment.trim()) {
-                        const action = operativeActions[result.operativa] || '';
-                        
-                        // Obtener información de operativa repetida desde el cache
-                        const infoRepetida = operativasRepetidasInfo[result.operativa] || { esRepetida: false };
-                        
-                        registros.push({
-                            operativa: result.operativa,
-                            colmena: extractColmena(result.operativa),
-                            comentario: comment,
-                            accion: action,
-                            fecha: new Date().toISOString(),
-                            fechaFormateada: new Date().toLocaleDateString('es-ES'),
-                            semana: numeroSemana,
-                            clasificacion: result.accion,
-                            // Información de operativa repetida
-                            esRepetida: infoRepetida.esRepetida,
-                            infoRepetida: infoRepetida.esRepetida ? {
-                                fechaAnterior: infoRepetida.fecha,
-                                semanaAnterior: infoRepetida.semana,
-                                comentarioAnterior: infoRepetida.comentario,
-                                accionAnterior: infoRepetida.accion,
-                                metricasAnteriores: infoRepetida.metricas
-                            } : null,
-                            metricas: {
-                                rutasDia: result.rutasDia,
-                                dias: result.dias,
-                                colPorRuta: result.colPorRuta,
-                                porcRetrasos: result.porcRetrasos,
-                                porcSinRetraso: result.porcSinRetraso,
-                                porcSalidaEnHora: result.porcSalidaEnHora,
-                                porcLlegadaArea: result.porcLlegadaArea,
-                                porcRetrasoEnArea: result.porcRetrasoEnArea,
-                                porcLlegadaEnHora: result.porcLlegadaEnHora,
-                                colTeorica: result.colTeorica,
-                                pdTeorico: result.pdTeorico,
-                                udTeorico: result.udTeorico,
-                                colTempus: result.colTempus,
-                                pdTempus: result.pdTempus,
-                                udTempus: result.udTempus,
-                                colVolumen: result.colVolumen
-                            },
-                            volumeProblems: result.volumeProblems,
-                            recomendaciones: result.recomendaciones,
-                            dataset: datasetNames[index]
+                        operativasConComentarios.push({
+                            result: result,
+                            datasetIndex: index,
+                            comment: comment
                         });
                     }
                 });
             }
         });
 
-        if (registros.length === 0) {
+        if (operativasConComentarios.length === 0) {
             alert('No hay operativas con comentarios para guardar');
             return;
         }
 
-        console.log('Intentando guardar', registros.length, 'registros');
-        console.log('Registros con información de repetidas:', registros.filter(r => r.esRepetida).length);
+        console.log('Operativas con comentarios:', operativasConComentarios.length);
 
-        // Obtener registros existentes
-        let existingData = { registros: [] };
-        
+        // PASO 2: Obtener registros históricos de JSONBin
+        let registrosHistoricos = [];
         try {
             const response = await fetch(`${JSONBIN_CONFIG.apiUrl}/b/${JSONBIN_CONFIG.binId}/latest`, {
                 method: 'GET',
@@ -4498,33 +4448,92 @@ async function saveRegistroToJsonBin() {
 
             if (response.ok) {
                 const data = await response.json();
-                // Intentar obtener los datos de diferentes formas según la respuesta de JSONBin
-                if (data.record && data.record.registros) {
-                    existingData = data.record;
-                } else if (data.record && Array.isArray(data.record)) {
-                    existingData = { registros: data.record };
-                } else if (data.registros) {
-                    existingData = data;
-                } else if (Array.isArray(data)) {
-                    existingData = { registros: data };
-                } else {
-                    existingData = { registros: [] };
-                }
-                console.log('Datos existentes cargados:', existingData.registros?.length || 0, 'registros');
-            } else {
-                console.warn('No se pudieron cargar datos existentes, iniciando con array vacío');
+                registrosHistoricos = data.record?.registros || data.registros || [];
+                console.log('Registros históricos cargados:', registrosHistoricos.length);
             }
         } catch (fetchError) {
-            console.warn('Error al obtener datos existentes:', fetchError);
+            console.warn('Error al obtener datos históricos:', fetchError);
         }
 
-        // Agregar nuevos registros al final (preservando los anteriores)
-        const existingRegistros = Array.isArray(existingData.registros) ? existingData.registros : [];
-        existingData.registros = [...existingRegistros, ...registros];
+        // PASO 3: Para cada operativa, verificar si es repetida
+        const semanaAnterior = numeroSemana - 1;
+        console.log('Buscando repetidas de semana:', semanaAnterior);
 
-        console.log('Total de registros a guardar:', existingData.registros.length);
+        operativasConComentarios.forEach(({ result, datasetIndex, comment }) => {
+            const action = operativeActions[result.operativa] || '';
+            
+            // Buscar si esta operativa existe en la semana anterior
+            const registroAnterior = registrosHistoricos.find(reg => 
+                reg.operativa === result.operativa && reg.semana === semanaAnterior
+            );
+            
+            const esRepetida = !!registroAnterior;
+            
+            if (esRepetida) {
+                console.log('✓ Operativa REPETIDA encontrada:', result.operativa);
+                console.log('  - Semana anterior:', registroAnterior.semana);
+                console.log('  - Fecha anterior:', registroAnterior.fechaFormateada);
+            }
+            
+            const registro = {
+                operativa: result.operativa,
+                colmena: extractColmena(result.operativa),
+                comentario: comment,
+                accion: action,
+                fecha: new Date().toISOString(),
+                fechaFormateada: new Date().toLocaleDateString('es-ES'),
+                semana: numeroSemana,
+                clasificacion: result.accion,
+                // Información de operativa repetida
+                esRepetida: esRepetida,
+                infoRepetida: esRepetida ? {
+                    fechaAnterior: registroAnterior.fechaFormateada || '',
+                    semanaAnterior: registroAnterior.semana || '',
+                    comentarioAnterior: registroAnterior.comentario || '',
+                    accionAnterior: registroAnterior.accion || '',
+                    metricasAnteriores: {
+                        porcSalidaEnHora: registroAnterior.metricas?.porcSalidaEnHora || 'N/A',
+                        porcLlegadaArea: registroAnterior.metricas?.porcLlegadaArea || 'N/A',
+                        porcRetrasoEnArea: registroAnterior.metricas?.porcRetrasoEnArea || 'N/A',
+                        porcLlegadaEnHora: registroAnterior.metricas?.porcLlegadaEnHora || 'N/A'
+                    }
+                } : null,
+                metricas: {
+                    rutasDia: result.rutasDia,
+                    dias: result.dias,
+                    colPorRuta: result.colPorRuta,
+                    porcRetrasos: result.porcRetrasos,
+                    porcSinRetraso: result.porcSinRetraso,
+                    porcSalidaEnHora: result.porcSalidaEnHora,
+                    porcLlegadaArea: result.porcLlegadaArea,
+                    porcRetrasoEnArea: result.porcRetrasoEnArea,
+                    porcLlegadaEnHora: result.porcLlegadaEnHora,
+                    colTeorica: result.colTeorica,
+                    pdTeorico: result.pdTeorico,
+                    udTeorico: result.udTeorico,
+                    colTempus: result.colTempus,
+                    pdTempus: result.pdTempus,
+                    udTempus: result.udTempus,
+                    colVolumen: result.colVolumen
+                },
+                volumeProblems: result.volumeProblems,
+                recomendaciones: result.recomendaciones,
+                dataset: datasetNames[datasetIndex]
+            };
+            
+            registros.push(registro);
+        });
 
-        // Guardar en JSONBin
+        const repetidasCount = registros.filter(r => r.esRepetida).length;
+        console.log('Total registros a guardar:', registros.length);
+        console.log('Operativas repetidas detectadas:', repetidasCount);
+
+        // PASO 4: Agregar nuevos registros al final
+        const todosLosRegistros = [...registrosHistoricos, ...registros];
+
+        console.log('Total después de agregar nuevos:', todosLosRegistros.length);
+
+        // PASO 5: Guardar en JSONBin
         const saveResponse = await fetch(`${JSONBIN_CONFIG.apiUrl}/b/${JSONBIN_CONFIG.binId}`, {
             method: 'PUT',
             headers: {
@@ -4532,15 +4541,17 @@ async function saveRegistroToJsonBin() {
                 'X-Master-Key': JSONBIN_CONFIG.masterKey,
                 'X-Bin-Versioning': 'false'
             },
-            body: JSON.stringify(existingData)
+            body: JSON.stringify({ registros: todosLosRegistros })
         });
 
         const responseData = await saveResponse.json();
         console.log('Respuesta del servidor:', responseData);
 
         if (saveResponse.ok) {
-            const repetidasCount = registros.filter(r => r.esRepetida).length;
-            alert(`✓ Se guardaron ${registros.length} operativa(s) con comentarios en el registro\n${repetidasCount > 0 ? `(${repetidasCount} operativa(s) repetida(s) detectada(s))` : ''}`);
+            const mensajeRepetidas = repetidasCount > 0 ? 
+                `\n\n📌 ${repetidasCount} operativa(s) repetida(s) de la semana ${semanaAnterior}` : '';
+            
+            alert(`✓ Se guardaron ${registros.length} operativa(s) con comentarios${mensajeRepetidas}`);
             
             // Feedback visual en el botón
             const btn = document.getElementById('saveRegistroBtn');
@@ -4552,12 +4563,15 @@ async function saveRegistroToJsonBin() {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }, 2000);
+            
+            console.log('=== GUARDADO EXITOSO ===');
         } else {
             throw new Error(responseData.message || 'Error al guardar en JSONBin');
         }
 
     } catch (error) {
-        console.error('Error completo al guardar registro:', error);
+        console.error('=== ERROR AL GUARDAR ===');
+        console.error('Error completo:', error);
         alert('Error al guardar el registro: ' + error.message + '\n\nRevisa la consola del navegador (F12) para más detalles.');
     }
 }
