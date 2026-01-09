@@ -1517,6 +1517,29 @@
                                         <input type="number" id="llegadaHoraValue" class="filter-input" placeholder="%" min="0" max="100" step="0.1">
                                     </div>
                                 </div>
+                                <div class="percentage-filter">
+                                    <label>📦 Problemas Volumen</label>
+                                    <div class="filter-row">
+                                        <select id="problemasVolumenFilter" class="comparison-select" style="flex: 1;">
+                                            <option value="">Todos</option>
+                                            <option value="Exceso">Exceso</option>
+                                            <option value="Equilibrio">Equilibrio</option>
+                                            <option value="Holgura">Holgura</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="percentage-filter">
+                                    <label>⚙️ Acción Productividad</label>
+                                    <div class="filter-row">
+                                        <select id="accionProductividadFilter" class="comparison-select" style="flex: 1;">
+                                            <option value="">Todas</option>
+                                            <option value="Reducir productividad">Reducir productividad</option>
+                                            <option value="Aumentar productividad">Aumentar productividad</option>
+                                            <option value="Equilibrada">Equilibrada</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div class="threshold-section">
@@ -1845,7 +1868,9 @@
             tiempoDiferencia: '',
             tiempoDireccion: 'any',
             tiempoTipo: 'any',
-            accionRecomendada: []
+            accionRecomendada: [],
+            problemasVolumen: '',
+            accionProductividad: ''
         };
 
         // Función para inicializar el estado del sidebar al cargar la página
@@ -2706,7 +2731,9 @@
                 tiempoDiferencia: '',
                 tiempoDireccion: 'any',
                 tiempoTipo: 'any',
-                accionRecomendada: []
+                accionRecomendada: [],
+                problemasVolumen: '',
+                accionProductividad: ''
             };
             
             document.getElementById('salidaComparison').value = '';
@@ -2722,6 +2749,8 @@
             document.getElementById('tiempoDiferenciaFilter').value = '';
             document.getElementById('tiempoDireccionFilter').value = 'any';
             document.getElementById('tiempoTipoFilter').value = 'any';
+            document.getElementById('problemasVolumenFilter').value = '';
+            document.getElementById('accionProductividadFilter').value = '';
             
             populateResultsFilters();
             
@@ -3000,9 +3029,40 @@
                 const matchesAccionRecomendada = activeFilters.accionRecomendada.length === 0 || 
                                                activeFilters.accionRecomendada.includes(result.accion);
                 
+                const matchesProblemasVolumen = (() => {
+                    if (activeFilters.problemasVolumen === '') return true;
+                    
+                    const volumeStatus = result.volumeProblems && result.volumeProblems.status;
+                    
+                    return volumeStatus === activeFilters.problemasVolumen;
+                })();
+                
+                const matchesAccionProductividad = (() => {
+                    if (activeFilters.accionProductividad === '') return true;
+                    
+                    const parseValue = (value) => {
+                        if (value === '' || value === undefined || value === null) return 0;
+                        return parseFloat(value.toString().replace(',', '.')) || 0;
+                    };
+                    
+                    const colTeorica = parseValue(result.colTeorica);
+                    const colTempus = parseValue(result.colTempus);
+                    const diferenciaCol = colTeorica - colTempus;
+                    
+                    if (activeFilters.accionProductividad === 'Reducir productividad') {
+                        return diferenciaCol < 0;
+                    } else if (activeFilters.accionProductividad === 'Aumentar productividad') {
+                        return diferenciaCol > 0;
+                    } else if (activeFilters.accionProductividad === 'Equilibrada') {
+                        return diferenciaCol === 0;
+                    }
+                    
+                    return true;
+                })();
+                
                 return matchesColmena && matchesArea && matchesTurno && matchesSalida && matchesLlegadaArea && 
                        matchesRetrasoArea && matchesLlegadaHora && matchesRetrasosThreshold && 
-                       matchesTiempoDiferencia && matchesAccionRecomendada;
+                       matchesTiempoDiferencia && matchesAccionRecomendada && matchesProblemasVolumen && matchesAccionProductividad;
             });
             
             updateResultsDisplay();
@@ -4092,6 +4152,12 @@
                 applyAllFilters();
             } else if (e.target.id === 'tiempoTipoFilter') {
                 activeFilters.tiempoTipo = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'problemasVolumenFilter') {
+                activeFilters.problemasVolumen = e.target.value;
+                applyAllFilters();
+            } else if (e.target.id === 'accionProductividadFilter') {
+                activeFilters.accionProductividad = e.target.value;
                 applyAllFilters();
             }
         });
