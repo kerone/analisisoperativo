@@ -3175,7 +3175,9 @@
                 tiempoDiferencia: '',
                 tiempoDireccion: 'any',
                 tiempoTipo: 'any',
-                accionRecomendada: []
+                accionRecomendada: [],
+                problemasVolumen: '',
+                accionProductividad: ''
             };
             
             document.querySelectorAll('#colmenaDropdown input[type="checkbox"]').forEach(checkbox => {
@@ -3209,6 +3211,8 @@
             document.getElementById('tiempoDiferenciaFilter').value = '';
             document.getElementById('tiempoDireccionFilter').value = 'any';
             document.getElementById('tiempoTipoFilter').value = 'any';
+            document.getElementById('problemasVolumenFilter').value = '';
+            document.getElementById('accionProductividadFilter').value = '';
             
             applyAllFilters();
         }
