@@ -1601,7 +1601,11 @@
                                     </button>
                                     <button id="downloadExcelBtn" class="btn btn-success" style="margin-left: 0.5rem;">
                                         <i class="fas fa-file-excel"></i>
-                                        Descargar Excel
+                                        Descargar Excel (Todo)
+                                    </button>
+                                    <button id="downloadFilteredExcelBtn" class="btn btn-success" style="margin-left: 0.5rem;">
+                                        <i class="fas fa-filter"></i>
+                                        Descargar Filtrado
                                     </button>
                                     <button id="saveRegistroBtn" class="btn btn-success" style="margin-left: 0.5rem;">
                                         <i class="fas fa-save"></i>
@@ -4339,6 +4343,120 @@
             
             // Visual feedback
             const btn = document.getElementById('downloadExcelBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Descargado';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+            }, 2000);
+        });
+
+        // Download Filtered Excel
+        document.getElementById('downloadFilteredExcelBtn').addEventListener('click', function() {
+            if (filteredResults.length === 0) {
+                alert('No hay datos filtrados para descargar');
+                return;
+            }
+            
+            // Función para calcular número de semana del año
+            function getWeekNumber(date) {
+                const d = new Date(date);
+                d.setHours(0, 0, 0, 0);
+                d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+                const week1 = new Date(d.getFullYear(), 0, 4);
+                return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+            }
+            
+            const fechaActual = new Date();
+            const numeroSemana = getWeekNumber(fechaActual);
+            
+            const excelData = filteredResults.map(result => ({
+                'Colmena': extractColmena(result.operativa) || '',
+                'Operativa': result.operativa || '',
+                'Rutas por Día': formatValue(result.rutasDia),
+                'Días': formatValue(result.dias),
+                'Columnas por Ruta': formatValue(result.colPorRuta),
+                '% Retrasos': formatValue(result.porcRetrasos),
+                '% Salida en Hora': formatValue(result.porcSalidaEnHora),
+                '% Llegada Área': formatValue(result.porcLlegadaArea),
+                '% Retraso en Área': formatValue(result.porcRetrasoEnArea),
+                '% Llegada en Hora': formatValue(result.porcLlegadaEnHora),
+                'Clasificación': result.accion || '',
+                'Problemas de Volumen': result.volumeProblems ? result.volumeProblems.message : '',
+                'Posibles Acciones': createPlainTextRecommendations(result),
+                'Comentarios': getComment(result.operativa),
+                '': '', // Columna en blanco
+                'Col Teóricas': formatValue(result.colTeorica),
+                'PD Teórico': formatValue(result.pdTeorico),
+                'UD Teórico': formatValue(result.udTeorico),
+                'Col Tempus': formatValue(result.colTempus),
+                'PD Tempus': formatValue(result.pdTempus),
+                'UD Tempus': formatValue(result.udTempus),
+                'Col Volumen': formatValue(result.colVolumen),
+                'Fecha Análisis': new Date().toLocaleDateString('es-ES'),
+                'Semana': numeroSemana
+            }));
+            
+            // Crear workbook de Excel
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            
+            // Configurar ancho de columnas
+            const columnWidths = [
+                { wch: 10 }, // Colmena
+                { wch: 25 }, // Operativa
+                { wch: 12 }, // Rutas por Día
+                { wch: 8 },  // Días
+                { wch: 15 }, // Columnas por Ruta
+                { wch: 10 }, // % Retrasos
+                { wch: 15 }, // % Salida en Hora
+                { wch: 15 }, // % Llegada Área
+                { wch: 18 }, // % Retraso en Área
+                { wch: 18 }, // % Llegada en Hora
+                { wch: 18 }, // Clasificación
+                { wch: 20 }, // Problemas de Volumen
+                { wch: 50 }, // Posibles Acciones
+                { wch: 30 }, // Comentarios
+                { wch: 3 },  // Columna en blanco
+                { wch: 12 }, // Col Teóricas
+                { wch: 12 }, // PD Teórico
+                { wch: 12 }, // UD Teórico
+                { wch: 12 }, // Col Tempus
+                { wch: 12 }, // PD Tempus
+                { wch: 12 }, // UD Tempus
+                { wch: 12 }, // Col Volumen
+                { wch: 15 }, // Fecha Análisis
+                { wch: 8 }   // Semana
+            ];
+            ws['!cols'] = columnWidths;
+            
+            // Agregar hoja al workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Análisis Filtrado');
+            
+            // Crear nombre de archivo descriptivo basado en filtros activos
+            let fileName = 'analisis_filtrado';
+            
+            // Añadir información de filtros activos al nombre
+            if (activeFilters.colmena.length > 0) {
+                fileName += `_${activeFilters.colmena.join('-')}`;
+            }
+            if (activeFilters.area.length > 0 && activeFilters.area.length <= 2) {
+                fileName += `_${activeFilters.area.join('-').replace(/\s+/g, '')}`;
+            }
+            if (activeFilters.problemasVolumen) {
+                fileName += `_${activeFilters.problemasVolumen}`;
+            }
+            if (activeFilters.accionProductividad) {
+                const accionCorta = activeFilters.accionProductividad.replace('productividad', 'prod').replace(/\s+/g, '');
+                fileName += `_${accionCorta}`;
+            }
+            
+            // Descargar archivo
+            const fechaArchivo = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `${fileName}_${fechaArchivo}.xlsx`);
+            
+            // Visual feedback
+            const btn = document.getElementById('downloadFilteredExcelBtn');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-check"></i> Descargado';
             
